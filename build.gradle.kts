@@ -23,17 +23,27 @@ repositories {
 }
 
 dependencies {
+	// Web
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
+
+	// Data
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	runtimeOnly("mysql:mysql-connector-java")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+	// Security
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 	implementation("org.springframework.boot:spring-boot-starter-security")
-	implementation("org.springframework.boot:spring-boot-starter-webflux")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.0.0.RELEASE")
+
+	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+	// Kotlin
 	implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-	runtimeOnly("mysql:mysql-connector-java")
-	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+	// Tests
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
 	}
