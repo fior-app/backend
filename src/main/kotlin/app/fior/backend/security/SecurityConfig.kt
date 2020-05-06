@@ -1,25 +1,48 @@
 package app.fior.backend.security
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.web.server.ServerWebExchange
+import reactor.core.publisher.Mono
 
 @Configuration
 @EnableWebFluxSecurity
 class SecurityConfig {
+
+    @Autowired
+    lateinit var authenticationManager: AuthenticationManager
+
+    @Autowired
+    lateinit var securityContextRepository: SecurityContextRepository
+
     @Bean
-    internal fun springWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
-        http.csrf().disable()
+    fun springWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain? {
+        val patterns = arrayOf("/auth/**")
+        return http.cors().disable()
+                .exceptionHandling()
+                .authenticationEntryPoint { swe: ServerWebExchange, e: AuthenticationException? -> Mono.fromRunnable { swe.response.statusCode = HttpStatus.UNAUTHORIZED } }.accessDeniedHandler { swe: ServerWebExchange, e: AccessDeniedException? -> Mono.fromRunnable { swe.response.statusCode = HttpStatus.FORBIDDEN } }.and()
+                .csrf().disable()
+                .authenticationManager(authenticationManager)
+                .securityContextRepository(securityContextRepository)
                 .authorizeExchange()
+                .pathMatchers(*patterns).permitAll()
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                .pathMatchers(HttpMethod.GET, "/").permitAll()
                 .anyExchange().authenticated()
-//                .and()
-//                .oauth2ResourceServer()
-//                .jwt()
-        return http.build()
+                .and()
+                .build()
+    }
+
+    @Bean
+    fun passwordEncoder(): BCryptPasswordEncoder? {
+        return BCryptPasswordEncoder()
     }
 }

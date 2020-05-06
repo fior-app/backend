@@ -32,10 +32,9 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
 	// Security
-	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 	implementation("org.springframework.boot:spring-boot-starter-security")
-	implementation("org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure:2.0.0.RELEASE")
-
+	implementation("io.jsonwebtoken:jjwt:0.9.1")
+	
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
 	// Kotlin
