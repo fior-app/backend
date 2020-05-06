@@ -11,12 +11,21 @@ val routerBeans = beans {
         router {
             "/auth".nest {
                 val handler = AuthHandler(ref(), ref())
+
                 POST("/login") { handler.login(it) }
                 POST("/signup") { handler.signup(it) }
+                POST("/forgotPassword") { handler.forgotPassword(it) }
+                GET("/resetPassword/{token}") { handler.checkResetPassword(it) }
+                POST("/resetPassword/{token}") { handler.resetPassword(it) }
             }
             "/users".nest {
                 val handler = UsersHandler(ref())
-                GET("/me") { handler.me(it) }
+
+                "/me".nest {
+                    POST("/sendEmailConfirmation") { handler.sendEmailConfirmation(it) }
+                    POST("/confirmEmail/{token}") { handler.confirmEmail(it) }
+                    GET("/") { handler.me(it) }
+                }
             }
 
             val handler = IndexHandler()

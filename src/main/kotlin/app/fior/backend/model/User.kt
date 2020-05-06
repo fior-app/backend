@@ -18,6 +18,8 @@ class User() {
 
     var email: String? = null
 
+    var emailValid: Boolean = false
+
     @JsonIgnore
     var password: String? = null
 

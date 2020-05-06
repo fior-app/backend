@@ -34,7 +34,10 @@ dependencies {
 	// Security
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("io.jsonwebtoken:jjwt:0.9.1")
-	
+
+	// Email
+	implementation("com.sendgrid:sendgrid-java:4.4.8")
+
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
 	// Kotlin
