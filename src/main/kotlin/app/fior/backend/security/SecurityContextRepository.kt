@@ -1,6 +1,5 @@
 package app.fior.backend.security
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContext
@@ -11,10 +10,9 @@ import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
 @Component
-class SecurityContextRepository : ServerSecurityContextRepository {
-
-    @Autowired
-    lateinit var authenticationManager: AuthenticationManager
+class SecurityContextRepository(
+        private val authenticationManager: AuthenticationManager
+) : ServerSecurityContextRepository {
 
     companion object {
         private const val TOKEN_PREFIX = "Bearer "

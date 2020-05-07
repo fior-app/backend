@@ -17,15 +17,16 @@ class User() {
     var name: String? = null
 
     var email: String? = null
-
     var emailValid: Boolean = false
 
     @JsonIgnore
     var password: String? = null
+    var hasPassword: Boolean = false
 
     constructor(signupRequest: SignupRequest) : this() {
         name = signupRequest.name
         email = signupRequest.email
         password = signupRequest.password
+        hasPassword = true
     }
 }

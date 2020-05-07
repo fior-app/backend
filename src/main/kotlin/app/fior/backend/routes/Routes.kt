@@ -18,11 +18,12 @@ val routerBeans = beans {
             }
 
             "/users".nest {
-                val handler = UsersHandler(ref(), ref(), ref())
+                val handler = UsersHandler(ref(), ref(), ref(), ref())
 
                 "/me".nest {
                     POST("/sendEmailConfirmation") { handler.sendEmailConfirmation(it) }
                     POST("/confirmEmail/{token}") { handler.confirmEmail(it) }
+                    POST("/changePassword") { handler.changePassword(it) }
                     GET("/") { handler.getMe(it) }
                     PUT("/") { handler.updateMe(it) }
                 }

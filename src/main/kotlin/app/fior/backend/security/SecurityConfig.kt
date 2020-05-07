@@ -1,6 +1,5 @@
 package app.fior.backend.security
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -16,20 +15,21 @@ import reactor.core.publisher.Mono
 
 @Configuration
 @EnableWebFluxSecurity
-class SecurityConfig {
-
-    @Autowired
-    lateinit var authenticationManager: AuthenticationManager
-
-    @Autowired
-    lateinit var securityContextRepository: SecurityContextRepository
+class SecurityConfig(
+        private val authenticationManager: AuthenticationManager,
+        private val securityContextRepository: SecurityContextRepository
+) {
 
     @Bean
     fun springWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain? {
         val patterns = arrayOf("/auth/**", "/")
         return http.cors().disable()
                 .exceptionHandling()
-                .authenticationEntryPoint { swe: ServerWebExchange, e: AuthenticationException? -> Mono.fromRunnable { swe.response.statusCode = HttpStatus.UNAUTHORIZED } }.accessDeniedHandler { swe: ServerWebExchange, e: AccessDeniedException? -> Mono.fromRunnable { swe.response.statusCode = HttpStatus.FORBIDDEN } }.and()
+                .authenticationEntryPoint { swe: ServerWebExchange, _: AuthenticationException? ->
+                    Mono.fromRunnable { swe.response.statusCode = HttpStatus.UNAUTHORIZED }
+                }.accessDeniedHandler { swe: ServerWebExchange, _: AccessDeniedException? ->
+                    Mono.fromRunnable { swe.response.statusCode = HttpStatus.FORBIDDEN }
+                }.and()
                 .csrf().disable()
                 .authenticationManager(authenticationManager)
                 .securityContextRepository(securityContextRepository)
