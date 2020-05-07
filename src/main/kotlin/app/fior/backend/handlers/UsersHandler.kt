@@ -3,6 +3,7 @@ package app.fior.backend.handlers
 import app.fior.backend.data.UserRepository
 import app.fior.backend.dto.ApiResponse
 import app.fior.backend.dto.ErrorResponse
+import app.fior.backend.dto.UpdateUserRequest
 import app.fior.backend.security.TokenProvider
 import app.fior.backend.services.EmailService
 import io.jsonwebtoken.Claims
@@ -15,13 +16,37 @@ class UsersHandler(
         private val userRepository: UserRepository
 ) {
 
-    fun me(request: ServerRequest) = request.principal().flatMap { principal ->
+    fun getMe(request: ServerRequest) = request.principal().flatMap { principal ->
         Mono.justOrEmpty(userRepository.findByEmail(principal.name))
                 .flatMap {
                     ServerResponse.ok().bodyValue(it)
                 }.switchIfEmpty {
-                    ServerResponse.noContent().build()
+                    ServerResponse.badRequest().bodyValue(ApiResponse("User not found"))
                 }
+    }
+
+    fun updateMe(request: ServerRequest) = request.principal().flatMap { principal ->
+        request.bodyToMono(UpdateUserRequest::class.java).flatMap { updateUserRequest ->
+            Mono.justOrEmpty(userRepository.findByEmail(principal.name))
+                    .flatMap userUpdate@ { user ->
+                        updateUserRequest.name?.let {
+                            user.name = updateUserRequest.name
+                        }
+
+                        updateUserRequest.email?.let {
+                            if (updateUserRequest.email != user.email && userRepository.findByEmail(updateUserRequest.email).isEmpty) {
+                                user.email = updateUserRequest.email
+                                user.emailValid = false
+                            } else return@userUpdate ServerResponse.badRequest().bodyValue(ApiResponse("User with given email already exists"))
+                        }
+
+                        Mono.just(userRepository.save(user)).flatMap {
+                            ServerResponse.ok().bodyValue(ApiResponse("User updated successfully"))
+                        }
+                    }.switchIfEmpty {
+                        ServerResponse.badRequest().bodyValue(ApiResponse("User not found"))
+                    }
+        }
     }
 
     fun sendEmailConfirmation(request: ServerRequest) = request.principal().flatMap { principal ->

@@ -26,7 +26,7 @@ class SecurityConfig {
 
     @Bean
     fun springWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain? {
-        val patterns = arrayOf("/auth/**")
+        val patterns = arrayOf("/auth/**", "/")
         return http.cors().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint { swe: ServerWebExchange, e: AuthenticationException? -> Mono.fromRunnable { swe.response.statusCode = HttpStatus.UNAUTHORIZED } }.accessDeniedHandler { swe: ServerWebExchange, e: AccessDeniedException? -> Mono.fromRunnable { swe.response.statusCode = HttpStatus.FORBIDDEN } }.and()

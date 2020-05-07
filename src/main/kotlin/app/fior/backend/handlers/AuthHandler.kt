@@ -17,7 +17,7 @@ class AuthHandler(
         private val passwordEncoder: BCryptPasswordEncoder
 ) {
 
-    fun login(request: ServerRequest) = request.bodyToMono(LoginRequest::class.java).flatMap { login ->
+    fun signin(request: ServerRequest) = request.bodyToMono(LoginRequest::class.java).flatMap { login ->
         Mono.justOrEmpty(userRepository.findByEmail(login.email))
                 .flatMap { user ->
                     if (passwordEncoder.matches(login.password, user.password!!)) {
