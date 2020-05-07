@@ -7,15 +7,11 @@ import com.sendgrid.SendGrid
 import com.sendgrid.helpers.mail.Mail
 import com.sendgrid.helpers.mail.objects.Email
 import com.sendgrid.helpers.mail.objects.Personalization
+import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
-object EmailService {
-    private const val SENDGRID_API_KEY = "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"
-
-    private const val EMAIL_NO_REPLY = "noreply@fior.app"
-
-    private const val TEMP_FORGOT_PASSWORD = "d-f13c22e0126d4909a3cdb6d5af14ac14"
-    private const val TEMP_EMAIL_CONFIRMATION = "d-9bbb6721ed274fcbae3b6d369db3074b"
+@Service
+class EmailService {
 
     fun sendEmailConfirmation(email: String, token: String): Mono<Int> {
         val personalization = Personalization()
@@ -51,5 +47,14 @@ object EmailService {
 
             response.statusCode
         }
+    }
+
+    companion object {
+        private const val SENDGRID_API_KEY = "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"
+
+        private const val EMAIL_NO_REPLY = "noreply@fior.app"
+
+        private const val TEMP_FORGOT_PASSWORD = "d-f13c22e0126d4909a3cdb6d5af14ac14"
+        private const val TEMP_EMAIL_CONFIRMATION = "d-9bbb6721ed274fcbae3b6d369db3074b"
     }
 }

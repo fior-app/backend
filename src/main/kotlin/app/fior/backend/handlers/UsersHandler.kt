@@ -4,7 +4,7 @@ import app.fior.backend.data.UserRepository
 import app.fior.backend.dto.ApiResponse
 import app.fior.backend.dto.ErrorResponse
 import app.fior.backend.dto.UpdateUserRequest
-import app.fior.backend.security.TokenProvider
+import app.fior.backend.services.TokenService
 import app.fior.backend.services.EmailService
 import io.jsonwebtoken.Claims
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -13,7 +13,9 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 class UsersHandler(
-        private val userRepository: UserRepository
+        private val userRepository: UserRepository,
+        private val emailService: EmailService,
+        private val tokenService: TokenService
 ) {
 
     fun getMe(request: ServerRequest) = request.principal().flatMap { principal ->
@@ -52,7 +54,7 @@ class UsersHandler(
     fun sendEmailConfirmation(request: ServerRequest) = request.principal().flatMap { principal ->
         Mono.justOrEmpty(userRepository.findByEmail(principal.name))
                 .flatMap {
-                    EmailService.sendEmailConfirmation(it.email!!, TokenProvider.generateConfirmToken(it)).flatMap {
+                    emailService.sendEmailConfirmation(it.email!!, tokenService.generateConfirmToken(it)).flatMap {
                         ServerResponse.badRequest().bodyValue(ApiResponse("Email confirmation request sent"))
                     }
                 }.switchIfEmpty {
@@ -62,15 +64,15 @@ class UsersHandler(
 
     fun confirmEmail(request: ServerRequest) = Mono.just(request.pathVariable("token")).flatMap { token ->
         val email = try {
-            TokenProvider.getUsernameFromToken(token)
+            tokenService.getUsernameFromToken(token)
         } catch (e: Exception) {
             null
         }
 
-        val claims: Claims = TokenProvider.getAllClaimsFromToken(token)
-        val isConfirm = claims[TokenProvider.CONFIRM_KEY] as Boolean
+        val claims: Claims = tokenService.getAllClaimsFromToken(token)
+        val isConfirm = claims[TokenService.CONFIRM_KEY] as Boolean
 
-        if (email != null && !TokenProvider.isTokenExpired(token) && isConfirm) {
+        if (email != null && !tokenService.isTokenExpired(token) && isConfirm) {
             Mono.justOrEmpty(userRepository.findByEmail(email))
                     .flatMap {
                         it.emailValid = true

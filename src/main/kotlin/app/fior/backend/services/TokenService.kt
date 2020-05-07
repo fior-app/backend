@@ -1,21 +1,15 @@
-package app.fior.backend.security
+package app.fior.backend.services
 
 import app.fior.backend.model.User
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.stereotype.Service
 import java.util.*
 
-
-object TokenProvider {
-    private const val SIGNING_KEY = "jinx&accdiec"
-    private const val ACCESS_TOKEN_DURATION = 28800
-    private const val COMMON_TOKEN_DURATION = 3600
-
-    const val SCOPES_KEY = "scopes"
-    const val RESET_KEY = "reset"
-    const val CONFIRM_KEY = "confirm"
+@Service
+class TokenService {
 
     fun getUsernameFromToken(token: String?): String {
         return getClaimFromToken(token) { obj: Claims -> obj.subject }
@@ -76,5 +70,15 @@ object TokenProvider {
     // Util classes
     private enum class TokenType {
         AUTH, RESET, CONFIRM
+    }
+
+    companion object {
+        private const val SIGNING_KEY = "jinx&accdiec"
+        private const val ACCESS_TOKEN_DURATION = 28800
+        private const val COMMON_TOKEN_DURATION = 3600
+
+        const val SCOPES_KEY = "scopes"
+        const val RESET_KEY = "reset"
+        const val CONFIRM_KEY = "confirm"
     }
 }

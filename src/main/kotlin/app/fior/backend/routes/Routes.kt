@@ -8,7 +8,7 @@ val routerBeans = beans {
     bean {
         router {
             "/auth".nest {
-                val handler = AuthHandler(ref(), ref())
+                val handler = AuthHandler(ref(), ref(), ref(), ref())
 
                 POST("/signin") { handler.signin(it) }
                 POST("/signup") { handler.signup(it) }
@@ -18,7 +18,7 @@ val routerBeans = beans {
             }
 
             "/users".nest {
-                val handler = UsersHandler(ref())
+                val handler = UsersHandler(ref(), ref(), ref())
 
                 "/me".nest {
                     POST("/sendEmailConfirmation") { handler.sendEmailConfirmation(it) }
