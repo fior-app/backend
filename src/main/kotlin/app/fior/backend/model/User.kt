@@ -2,31 +2,22 @@ package app.fior.backend.model
 
 import app.fior.backend.dto.SignupRequest
 import com.fasterxml.jackson.annotation.JsonIgnore
-import javax.persistence.Entity
-import javax.persistence.Id
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
 
-
-@Entity
-class User() {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    var id: Int? = null
-
-    var name: String? = null
-
-    var email: String? = null
-    var emailValid: Boolean = false
-
-    @JsonIgnore
-    var password: String? = null
-    var hasPassword: Boolean = false
-
-    constructor(signupRequest: SignupRequest) : this() {
-        name = signupRequest.name
-        email = signupRequest.email
-        password = signupRequest.password
-        hasPassword = true
-    }
+@Document(collection = "users")
+data class User(
+        @Id val id: String? = null,
+        val name: String,
+        val email: String,
+        val emailValid: Boolean = false,
+        @JsonIgnore val password: String,
+        val hasPassword: Boolean
+) {
+    constructor(signupRequest: SignupRequest) : this(
+            name = signupRequest.name,
+            email = signupRequest.email,
+            password = signupRequest.password,
+            hasPassword = true
+    )
 }

@@ -27,8 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
 
     // Data
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    runtimeOnly("mysql:mysql-connector-java")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     // Security
@@ -55,7 +54,6 @@ dependencies {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }
     testImplementation("io.projectreactor:reactor-test")
-    testImplementation("org.springframework.security:spring-security-test")
 }
 
 tasks.withType<Test> {

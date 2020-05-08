@@ -1,8 +1,6 @@
 spring:
-  jpa:
-    hibernate:
-      ddl-auto: update
-  datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:3306/fior
-    username: ${MYSQL_USER:root}
-    password: ${MYSQL_PASS:''}
+  data:
+    mongodb:
+      uri: ${MONGO_DB_URL:'mongodb://localhost:27017/fior'}
+  main:
+    allow-bean-definition-overriding: true

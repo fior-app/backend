@@ -20,9 +20,9 @@ class AuthHandler(
 ) {
 
     fun signin(request: ServerRequest) = request.bodyToMono(LoginRequest::class.java).flatMap { login ->
-        Mono.justOrEmpty(userRepository.findByEmail(login.email))
+        userRepository.findByEmail(login.email)
                 .flatMap { user ->
-                    if (passwordEncoder.matches(login.password, user.password!!)) {
+                    if (passwordEncoder.matches(login.password, user.password)) {
                         ServerResponse.ok().bodyValue(LoginResponse(tokenService.generateAuthToken(user)))
                     } else {
                         ServerResponse.badRequest().bodyValue(ApiResponse("Invalid credentials"))
@@ -36,21 +36,21 @@ class AuthHandler(
         user.password = passwordEncoder.encode(user.password)
         user
     }.flatMap { user ->
-        Mono.justOrEmpty(userRepository.findByEmail(user.email))
+        userRepository.findByEmail(user.email)
                 .flatMap { ServerResponse.badRequest().bodyValue(ApiResponse("User already exist")) }
                 .switchIfEmpty {
-                    Mono.just(userRepository.save(User(user))).flatMap {
+                    userRepository.save(User(user)).flatMap {
                         ServerResponse.ok().bodyValue(ApiResponse("User created successfully"))
                     }
                 }
     }
 
     fun forgotPassword(request: ServerRequest) = request.bodyToMono(ForgotPasswordRequest::class.java).flatMap { req ->
-        Mono.justOrEmpty(userRepository.findByEmail(req.email))
+        userRepository.findByEmail(req.email)
                 .flatMap {
                     val resetToken = tokenService.generateResetToken(it)
 
-                    emailService.sendForgotPassword(it.email!!, resetToken).flatMap {
+                    emailService.sendForgotPassword(it.email, resetToken).flatMap {
                         ServerResponse.ok().bodyValue(ApiResponse("Password reset email sent"))
                     }
                 }.switchIfEmpty {
@@ -69,7 +69,7 @@ class AuthHandler(
         val isReset = claims[TokenService.RESET_KEY] as Boolean
 
         if (email != null && !tokenService.isTokenExpired(token) && isReset) {
-            Mono.justOrEmpty(userRepository.findByEmail(email))
+            userRepository.findByEmail(email)
                     .flatMap {
                         ServerResponse.ok().bodyValue(it)
                     }.switchIfEmpty {
@@ -91,11 +91,11 @@ class AuthHandler(
         val isReset = claims[TokenService.RESET_KEY] as Boolean
 
         if (email != null && !tokenService.isTokenExpired(token) && isReset) {
-            Mono.justOrEmpty(userRepository.findByEmail(email))
+            userRepository.findByEmail(email)
                     .flatMap {
-                        it.password = passwordEncoder.encode(req.password)
+                        val updatedUser = it.copy(password = passwordEncoder.encode(req.password))
 
-                        Mono.just(userRepository.save(it)).flatMap {
+                        userRepository.save(updatedUser).flatMap {
                             ServerResponse.ok().bodyValue(ApiResponse("Password reset successfully"))
                         }
                     }.switchIfEmpty {
