@@ -13,8 +13,8 @@ val routerBeans = beans {
                 POST("/signin") { handler.signin(it) }
                 POST("/signup") { handler.signup(it) }
                 POST("/forgotPassword") { handler.forgotPassword(it) }
-                GET("/resetPassword/{token}") { handler.checkResetPassword(it) }
-                POST("/resetPassword/{token}") { handler.resetPassword(it) }
+                GET("/checkResetPassword") { handler.checkResetPassword(it) }
+                POST("/resetPassword") { handler.resetPassword(it) }
             }
 
             "/users".nest {
@@ -22,7 +22,7 @@ val routerBeans = beans {
 
                 "/me".nest {
                     POST("/sendEmailConfirmation") { handler.sendEmailConfirmation(it) }
-                    POST("/confirmEmail/{token}") { handler.confirmEmail(it) }
+                    POST("/confirmEmail") { handler.confirmEmail(it) }
                     POST("/changePassword") { handler.changePassword(it) }
                     GET("/") { handler.getMe(it) }
                     PUT("/") { handler.updateMe(it) }

@@ -58,7 +58,7 @@ class AuthHandler(
                 }
     }
 
-    fun checkResetPassword(request: ServerRequest) = Mono.just(request.pathVariable("token")).flatMap { token ->
+    fun checkResetPassword(request: ServerRequest) = Mono.justOrEmpty(request.queryParam("token")).flatMap { token ->
         val email = try {
             tokenService.getUsernameFromToken(token)
         } catch (e: Exception) {
@@ -76,24 +76,24 @@ class AuthHandler(
                         ServerResponse.badRequest().bodyValue(ApiResponse("User not found"))
                     }
         } else ServerResponse.badRequest().bodyValue(ErrorResponse("Reset token is not valid"))
+    }.switchIfEmpty {
+        ServerResponse.badRequest().bodyValue(ApiResponse("Token query parameter is not found"))
     }
 
-    fun resetPassword(request: ServerRequest) = request.bodyToMono(ResetPasswordRequest::class.java).flatMap { req ->
-        val token = request.pathVariable("token")
-
+    fun resetPassword(request: ServerRequest) = request.bodyToMono(ResetPasswordRequest::class.java).flatMap { resetPasswordRequest ->
         val email = try {
-            tokenService.getUsernameFromToken(token)
+            tokenService.getUsernameFromToken(resetPasswordRequest.token)
         } catch (e: Exception) {
             null
         }
 
-        val claims: Claims = tokenService.getAllClaimsFromToken(token)
+        val claims: Claims = tokenService.getAllClaimsFromToken(resetPasswordRequest.token)
         val isReset = claims[TokenService.RESET_KEY] as Boolean
 
-        if (email != null && !tokenService.isTokenExpired(token) && isReset) {
+        if (email != null && !tokenService.isTokenExpired(resetPasswordRequest.token) && isReset) {
             userRepository.findByEmail(email)
                     .flatMap {
-                        val updatedUser = it.copy(password = passwordEncoder.encode(req.password))
+                        val updatedUser = it.copy(password = passwordEncoder.encode(resetPasswordRequest.password))
 
                         userRepository.save(updatedUser).flatMap {
                             ServerResponse.ok().bodyValue(ApiResponse("Password reset successfully"))

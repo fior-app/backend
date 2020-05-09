@@ -9,3 +9,7 @@ data class ChangePasswordRequest(
         val oldPassword: String,
         val newPassword: String
 )
+
+data class ConfirmEmailRequest(
+        val token: String
+)

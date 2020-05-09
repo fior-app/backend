@@ -1,10 +1,7 @@
 package app.fior.backend.handlers
 
 import app.fior.backend.data.UserRepository
-import app.fior.backend.dto.ApiResponse
-import app.fior.backend.dto.ChangePasswordRequest
-import app.fior.backend.dto.ErrorResponse
-import app.fior.backend.dto.UpdateUserRequest
+import app.fior.backend.dto.*
 import app.fior.backend.services.TokenService
 import app.fior.backend.services.EmailService
 import io.jsonwebtoken.Claims
@@ -64,17 +61,17 @@ class UsersHandler(
                 }
     }
 
-    fun confirmEmail(request: ServerRequest) = Mono.just(request.pathVariable("token")).flatMap { token ->
+    fun confirmEmail(request: ServerRequest) = request.bodyToMono(ConfirmEmailRequest::class.java).flatMap { confirmEmailRequest ->
         val email = try {
-            tokenService.getUsernameFromToken(token)
+            tokenService.getUsernameFromToken(confirmEmailRequest.token)
         } catch (e: Exception) {
             null
         }
 
-        val claims: Claims = tokenService.getAllClaimsFromToken(token)
+        val claims: Claims = tokenService.getAllClaimsFromToken(confirmEmailRequest.token)
         val isConfirm = claims[TokenService.CONFIRM_KEY] as Boolean
 
-        if (email != null && !tokenService.isTokenExpired(token) && isConfirm) {
+        if (email != null && !tokenService.isTokenExpired(confirmEmailRequest.token) && isConfirm) {
             userRepository.findByEmail(email)
                     .flatMap {
                         val updatedUser = it.copy(emailValid = true)
