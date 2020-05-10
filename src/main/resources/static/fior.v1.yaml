@@ -1,0 +1,27 @@
+openapi: 3.0.0
+info:
+  title: fior
+  version: 1.0.0
+  description: Rest API for fior (mentoring platform)
+  contact:
+    name: Udesh Kumarasinghe
+    url: 'https://www.udesh.xyz'
+    email: mail@udesh.xyz
+  license:
+    name: Proprietary
+servers:
+  - url: 'http://localhost:8080/v1'
+    description: Local
+  - url: 'https://api.fior.app/v1'
+    description: Production
+paths: {}
+components:
+  schemas: {}
+  securitySchemes:
+    token:
+      type: http
+      scheme: bearer
+      description: Access token using JWT produced by auth endpoints
+tags:
+  - name: Models
+    description: Models of the API
