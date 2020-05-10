@@ -1,6 +1,8 @@
 package app.fior.backend.routes
 
-import app.fior.backend.handlers.*
+import app.fior.backend.handlers.AuthHandler
+import app.fior.backend.handlers.IndexHandler
+import app.fior.backend.handlers.UsersHandler
 import org.springframework.context.support.beans
 import org.springframework.web.reactive.function.server.router
 
@@ -8,10 +10,11 @@ val routerBeans = beans {
     bean {
         router {
             "/auth".nest {
-                val handler = AuthHandler(ref(), ref(), ref(), ref())
+                val handler = AuthHandler(ref(), ref(), ref(), ref(), ref())
 
                 POST("/signin") { handler.signin(it) }
                 POST("/signup") { handler.signup(it) }
+                POST("/google") { handler.googleSignIn(it) }
                 POST("/forgotPassword") { handler.forgotPassword(it) }
                 GET("/checkResetPassword") { handler.checkResetPassword(it) }
                 POST("/resetPassword") { handler.resetPassword(it) }

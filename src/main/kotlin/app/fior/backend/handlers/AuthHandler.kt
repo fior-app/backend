@@ -4,6 +4,7 @@ import app.fior.backend.data.UserRepository
 import app.fior.backend.dto.*
 import app.fior.backend.model.User
 import app.fior.backend.services.EmailService
+import app.fior.backend.services.GoogleAuthService
 import app.fior.backend.services.TokenService
 import io.jsonwebtoken.Claims
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -16,7 +17,8 @@ class AuthHandler(
         private val userRepository: UserRepository,
         private val passwordEncoder: BCryptPasswordEncoder,
         private val emailService: EmailService,
-        private val tokenService: TokenService
+        private val tokenService: TokenService,
+        private val googleAuthService: GoogleAuthService
 ) {
 
     fun signin(request: ServerRequest) = request.bodyToMono(LoginRequest::class.java).flatMap { login ->
@@ -44,6 +46,16 @@ class AuthHandler(
                     }
                 }
     }
+
+    fun googleSignIn(request: ServerRequest) = request.bodyToMono(GoogleSignInRequest::class.java).flatMap { googleSignInRequest ->
+        googleAuthService.verifyIdToken(googleSignInRequest.idToken)
+    }.flatMap { payload ->
+        userRepository.save(User(payload))
+                .flatMap { ServerResponse.ok().bodyValue(ApiResponse("User created successfully")) }
+    }.switchIfEmpty {
+        ServerResponse.badRequest().bodyValue(ApiResponse("Invalid id token"))
+    }
+
 
     fun forgotPassword(request: ServerRequest) = request.bodyToMono(ForgotPasswordRequest::class.java).flatMap { req ->
         userRepository.findByEmail(req.email)

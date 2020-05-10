@@ -4,3 +4,7 @@ spring:
       uri: ${MONGO_DB_URL:'mongodb://localhost:27017/fior'}
   main:
     allow-bean-definition-overriding: true
+app:
+  fior:
+    auth:
+      google-client-id: ${GOOGLE_CLIENT_ID}
