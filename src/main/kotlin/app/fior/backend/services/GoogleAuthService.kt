@@ -14,22 +14,20 @@ import java.util.*
 @Service
 class GoogleAuthService {
 
-    @Value("app.fior.auth.google.client.id")
+    @Value("\${fior.auth.google-client-id}")
     private lateinit var googleClientId: String
-    @Autowired
-    private lateinit var idTokenVerifier: GoogleIdTokenVerifier
 
     fun verifyIdToken(idTokenString: String): Mono<GoogleIdToken.Payload> {
-        return Mono.justOrEmpty(idTokenString).map {
-            val payload = idTokenVerifier.verify(idTokenString)?.payload
-            payload
+        return Mono.fromCallable {
+            val payload = googleIdTokenVerifier.verify(idTokenString)
+            payload?.payload
         }
     }
 
-    @Bean
-    fun googleIdTokenVerifier(): GoogleIdTokenVerifier {
-        return GoogleIdTokenVerifier.Builder(NetHttpTransport(), JacksonFactory())
-                .setAudience(Collections.singletonList(googleClientId))
-                .build()
-    }
+    val googleIdTokenVerifier: GoogleIdTokenVerifier
+        get() {
+            return GoogleIdTokenVerifier.Builder(NetHttpTransport(), JacksonFactory())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build()
+        }
 }

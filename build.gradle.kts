@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm") version "1.3.71"
     kotlin("plugin.spring") version "1.3.71"
     kotlin("plugin.jpa") version "1.3.71"
+    kotlin("kapt") version "1.3.61"
 }
 
 group = "app.fior"
@@ -42,7 +43,7 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-webflux-ui:$springDocVersion")
     implementation("org.springdoc:springdoc-openapi-kotlin:$springDocVersion")
 
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
 
     // Kotlin
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")

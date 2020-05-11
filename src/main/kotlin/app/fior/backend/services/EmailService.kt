@@ -7,18 +7,24 @@ import com.sendgrid.SendGrid
 import com.sendgrid.helpers.mail.Mail
 import com.sendgrid.helpers.mail.objects.Email
 import com.sendgrid.helpers.mail.objects.Personalization
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
-class EmailService {
+class EmailService(
+        @Value("\${fior.sendgrid.api-key}") private val apiKey: String,
+        @Value("\${fior.sendgrid.sender}") private val sender: String,
+        @Value("\${fior.sendgrid.templates.email-confirmation}") private val forgotPasswordTemplate: String,
+        @Value("\${fior.sendgrid.templates.forgot-password}") private val emailConfirmationTemplate: String
+) {
 
     fun sendEmailConfirmation(email: String, token: String): Mono<Int> {
         val personalization = Personalization()
         personalization.addDynamicTemplateData("token", token)
         personalization.addTo(Email(email))
 
-        return sendMail(TEMP_EMAIL_CONFIRMATION, personalization)
+        return sendMail(emailConfirmationTemplate, personalization)
     }
 
     fun sendForgotPassword(email: String, token: String): Mono<Int> {
@@ -26,17 +32,17 @@ class EmailService {
         personalization.addDynamicTemplateData("token", token)
         personalization.addTo(Email(email))
 
-        return sendMail(TEMP_FORGOT_PASSWORD, personalization)
+        return sendMail(forgotPasswordTemplate, personalization)
     }
 
     private fun sendMail(templateId: String, personalization: Personalization): Mono<Int> {
         val mail = Mail()
-        mail.setFrom(Email(EMAIL_NO_REPLY))
+        mail.setFrom(Email(sender))
         mail.setTemplateId(templateId)
 
         mail.addPersonalization(personalization)
 
-        val sg = SendGrid(SENDGRID_API_KEY)
+        val sg = SendGrid(apiKey)
         val request = Request()
 
         return Mono.fromCallable {
@@ -49,12 +55,4 @@ class EmailService {
         }
     }
 
-    companion object {
-        private const val SENDGRID_API_KEY = "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"
-
-        private const val EMAIL_NO_REPLY = "noreply@fior.app"
-
-        private const val TEMP_FORGOT_PASSWORD = "d-f13c22e0126d4909a3cdb6d5af14ac14"
-        private const val TEMP_EMAIL_CONFIRMATION = "d-9bbb6721ed274fcbae3b6d369db3074b"
-    }
 }

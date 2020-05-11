@@ -4,12 +4,18 @@ import app.fior.backend.model.User
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class TokenService {
+class TokenService(
+        @Value("\${fior.token.signing-key}") private val signingKey: String,
+        @Value("\${fior.token.durations.access-token}") private val accessTokenDuration: Int,
+        @Value("\${fior.token.durations.reset-token}") private val resetTokenDuration: Int,
+        @Value("\${fior.token.durations.confirm-token}") private val confirmTokenDuration: Int
+) {
 
     fun getUsernameFromToken(token: String?): String {
         return getClaimFromToken(token) { obj: Claims -> obj.subject }
@@ -17,7 +23,7 @@ class TokenService {
 
     fun getAllClaimsFromToken(token: String?): Claims {
         return Jwts.parser()
-                .setSigningKey(SIGNING_KEY)
+                .setSigningKey(signingKey)
                 .parseClaimsJws(token)
                 .body
     }
@@ -28,15 +34,15 @@ class TokenService {
     }
 
     fun generateAuthToken(user: User): String {
-        return doGenerateToken(user.email!!, ACCESS_TOKEN_DURATION, TokenType.AUTH)
+        return doGenerateToken(user.email, accessTokenDuration, TokenType.AUTH)
     }
 
     fun generateResetToken(user: User): String {
-        return doGenerateToken(user.email!!, COMMON_TOKEN_DURATION, TokenType.RESET)
+        return doGenerateToken(user.email, resetTokenDuration, TokenType.RESET)
     }
 
     fun generateConfirmToken(user: User): String {
-        return doGenerateToken(user.email!!, COMMON_TOKEN_DURATION, TokenType.CONFIRM)
+        return doGenerateToken(user.email, confirmTokenDuration, TokenType.CONFIRM)
     }
 
     // Util functions
@@ -54,7 +60,7 @@ class TokenService {
                 .setClaims(claims)
                 .setIssuedAt(Date(System.currentTimeMillis()))
                 .setExpiration(Date(System.currentTimeMillis() + duration * 1000))
-                .signWith(SignatureAlgorithm.HS256, SIGNING_KEY)
+                .signWith(SignatureAlgorithm.HS256, signingKey)
                 .compact()
     }
 
@@ -73,10 +79,6 @@ class TokenService {
     }
 
     companion object {
-        private const val SIGNING_KEY = "jinx&accdiec"
-        private const val ACCESS_TOKEN_DURATION = 28800
-        private const val COMMON_TOKEN_DURATION = 3600
-
         const val SCOPES_KEY = "scopes"
         const val RESET_KEY = "reset"
         const val CONFIRM_KEY = "confirm"

@@ -21,20 +21,7 @@ class AuthHandler(
         private val googleAuthService: GoogleAuthService
 ) {
 
-    fun signin(request: ServerRequest) = request.bodyToMono(LoginRequest::class.java).flatMap { login ->
-        userRepository.findByEmail(login.email)
-                .flatMap { user ->
-                    if (passwordEncoder.matches(login.password, user.password)) {
-                        ServerResponse.ok().bodyValue(LoginResponse(tokenService.generateAuthToken(user)))
-                    } else {
-                        ServerResponse.badRequest().bodyValue(ApiResponse("Invalid credentials"))
-                    }
-                }.switchIfEmpty {
-                    ServerResponse.badRequest().bodyValue(ApiResponse("User does not exist"))
-                }
-    }
-
-    fun signup(request: ServerRequest) = request.bodyToMono(SignupRequest::class.java).map { user ->
+    fun signUp(request: ServerRequest) = request.bodyToMono(SignupRequest::class.java).map { user ->
         user.password = passwordEncoder.encode(user.password)
         user
     }.flatMap { user ->
@@ -47,15 +34,32 @@ class AuthHandler(
                 }
     }
 
-    fun googleSignIn(request: ServerRequest) = request.bodyToMono(GoogleSignInRequest::class.java).flatMap { googleSignInRequest ->
+    fun signInWithEmail(request: ServerRequest) = request.bodyToMono(LoginRequest::class.java).flatMap { login ->
+        userRepository.findByEmail(login.email)
+                .flatMap { user ->
+                    if (passwordEncoder.matches(login.password, user.password)) {
+                        ServerResponse.ok().bodyValue(LoginResponse(tokenService.generateAuthToken(user)))
+                    } else {
+                        ServerResponse.badRequest().bodyValue(ApiResponse("Invalid credentials"))
+                    }
+                }.switchIfEmpty {
+                    ServerResponse.badRequest().bodyValue(ApiResponse("User does not exist"))
+                }
+    }
+
+    fun signInWithGoogle(request: ServerRequest) = request.bodyToMono(GoogleSignInRequest::class.java).flatMap { googleSignInRequest ->
         googleAuthService.verifyIdToken(googleSignInRequest.idToken)
     }.flatMap { payload ->
-        userRepository.save(User(payload))
-                .flatMap { ServerResponse.ok().bodyValue(ApiResponse("User created successfully")) }
+        userRepository.findByEmail(payload.email).flatMap {
+            ServerResponse.ok().bodyValue(LoginResponse(tokenService.generateAuthToken(it)))
+        }.switchIfEmpty {
+            userRepository.save(User(payload)).flatMap {
+                ServerResponse.ok().bodyValue(LoginResponse(tokenService.generateAuthToken(it)))
+            }
+        }
     }.switchIfEmpty {
         ServerResponse.badRequest().bodyValue(ApiResponse("Invalid id token"))
     }
-
 
     fun forgotPassword(request: ServerRequest) = request.bodyToMono(ForgotPasswordRequest::class.java).flatMap { req ->
         userRepository.findByEmail(req.email)
