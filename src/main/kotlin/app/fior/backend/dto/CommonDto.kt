@@ -1,6 +1,6 @@
 package app.fior.backend.dto
 
-data class ApiResponse (
+data class SuccessResponse (
         val message: String
 )
 

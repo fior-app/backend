@@ -1,6 +1,6 @@
 package app.fior.backend.model
 
-import app.fior.backend.dto.SignupRequest
+import app.fior.backend.dto.SignUpRequest
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
 import org.springframework.data.annotation.Id
@@ -15,10 +15,10 @@ data class User(
         @JsonIgnore val password: String?,
         val hasPassword: Boolean
 ) {
-    constructor(signupRequest: SignupRequest) : this(
-            name = signupRequest.name,
-            email = signupRequest.email,
-            password = signupRequest.password,
+    constructor(signUpRequest: SignUpRequest) : this(
+            name = signUpRequest.name,
+            email = signUpRequest.email,
+            password = signUpRequest.password,
             hasPassword = true
     )
 

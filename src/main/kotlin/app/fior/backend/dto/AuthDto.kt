@@ -1,18 +1,22 @@
 package app.fior.backend.dto
 
-data class LoginRequest(
+data class SignUpRequest(
+        val name: String,
+        val email: String,
+        var password: String
+)
+
+data class SignInEmailRequest(
         val email: String,
         val password: String
 )
 
-data class LoginResponse(
-        val token: String
+data class SignInGoogleRequest(
+        val idToken: String
 )
 
-data class SignupRequest(
-        val name: String,
-        val email: String,
-        var password: String
+data class SignInResponse(
+        val token: String
 )
 
 data class ForgotPasswordRequest(
@@ -22,8 +26,4 @@ data class ForgotPasswordRequest(
 data class ResetPasswordRequest(
         val token: String,
         val password: String
-)
-
-data class GoogleSignInRequest(
-        val idToken: String
 )

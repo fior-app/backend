@@ -14,14 +14,310 @@ servers:
     description: Local
   - url: 'https://api.fior.app/v1'
     description: Production
-paths: {}
+paths:
+  /auth/signup:
+    post:
+      summary: signUp
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: signUp
+      description: Create new user with email and password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequest'
+  /auth/signin/email:
+    post:
+      summary: signInEmail
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: signInEmail
+      description: Authenticate an user with email and password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInEmailRequest'
+    parameters: []
+  /auth/signin/google:
+    post:
+      summary: signInGoogle
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: signInGoogle
+      description: Authenticate an user with Google
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInGoogleRequest'
+  /auth/forgotPassword:
+    post:
+      summary: forgotPassword
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: forgotPassword
+      description: Request password reset when password is forgotten
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+  /auth/resetPassword:
+    get:
+      summary: checkResetPassword
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: checkResetPassword
+      description: Check whether a password reset request exists for given reset token
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: token
+          description: Reset token from the email
+    post:
+      summary: resetPassword
+      tags:
+        - Auth
+      operationId: resetPassword
+      description: Reset user password using a reset token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
-  schemas: {}
+  schemas:
+    SignUpRequest:
+      title: SignUpRequest
+      type: object
+      x-tags:
+        - Model
+      description: Request with new user data
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+        - name
+        - email
+        - password
+    ErrorResponse:
+      title: ErrorResponse
+      type: object
+      x-tags:
+        - Model
+      description: Response with data of a error
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    SuccessResponse:
+      title: SuccessResponse
+      type: object
+      description: Response with data of a successful operation
+      properties:
+        message:
+          type: string
+      required:
+        - message
+      x-tags:
+        - Model
+    SignInEmailRequest:
+      title: SignInEmailRequest
+      type: object
+      x-tags:
+        - Model
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+        - email
+        - password
+      description: Request with email and password authentication data
+    SignInResponse:
+      title: SignInResponse
+      type: object
+      description: 'Response with data of successful authentication '
+      properties:
+        token:
+          type: string
+      required:
+        - token
+      x-tags:
+        - Model
+    SignInGoogleRequest:
+      title: SignInGoogleRequest
+      type: object
+      description: Request with Google authentication data
+      properties:
+        idToken:
+          type: string
+      required:
+        - idToken
+      x-tags:
+        - Model
+    ForgotPasswordRequest:
+      title: ForgotPasswordRequest
+      type: object
+      x-tags:
+        - Model
+      description: Request with password forgotten users data
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+        - email
+    User:
+      title: User
+      type: object
+      x-tags:
+        - Model
+      description: Model with user data
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        emailValid:
+          type: boolean
+        hasPassword:
+          type: boolean
+      required:
+        - id
+        - name
+        - email
+        - emailValid
+        - hasPassword
+    ResetPasswordRequest:
+      title: ResetPasswordRequest
+      type: object
+      x-tags:
+        - Model
+      description: Request with reset password data
+      properties:
+        token:
+          type: string
+        password:
+          type: string
+          format: password
+      required:
+        - token
+        - password
   securitySchemes:
     token:
       type: http
       scheme: bearer
       description: Access token using JWT produced by auth endpoints
 tags:
+  - name: Auth
+    description: Endpoints related to authentication
   - name: Models
     description: Models of the API

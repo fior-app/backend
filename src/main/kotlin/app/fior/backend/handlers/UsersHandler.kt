@@ -8,7 +8,6 @@ import io.jsonwebtoken.Claims
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 class UsersHandler(
@@ -23,7 +22,7 @@ class UsersHandler(
                 .flatMap {
                     ServerResponse.ok().bodyValue(it)
                 }.switchIfEmpty {
-                    ServerResponse.badRequest().bodyValue(ApiResponse("User not found"))
+                    ServerResponse.badRequest().bodyValue(SuccessResponse("User not found"))
                 }
     }
 
@@ -33,7 +32,7 @@ class UsersHandler(
                     .flatMap getUser@{ user ->
                         val canUpdateEmail = if (updateUserRequest.email != null && updateUserRequest.email != user.email) {
                             userRepository.findByEmail(updateUserRequest.email).block() != null
-                        } else return@getUser ServerResponse.badRequest().bodyValue(ApiResponse("User with given email already exists"))
+                        } else return@getUser ServerResponse.badRequest().bodyValue(SuccessResponse("User with given email already exists"))
 
                         val updatedUser = user.copy(
                                 name = updateUserRequest.name ?: user.name,
@@ -42,10 +41,10 @@ class UsersHandler(
                         )
 
                         userRepository.save(updatedUser).flatMap {
-                            ServerResponse.ok().bodyValue(ApiResponse("User updated successfully"))
+                            ServerResponse.ok().bodyValue(SuccessResponse("User updated successfully"))
                         }
                     }.switchIfEmpty {
-                        ServerResponse.badRequest().bodyValue(ApiResponse("User not found"))
+                        ServerResponse.badRequest().bodyValue(SuccessResponse("User not found"))
                     }
         }
     }
@@ -54,10 +53,10 @@ class UsersHandler(
         userRepository.findByEmail(principal.name)
                 .flatMap {
                     emailService.sendEmailConfirmation(it.email, tokenService.generateConfirmToken(it)).flatMap {
-                        ServerResponse.badRequest().bodyValue(ApiResponse("Email confirmation request sent"))
+                        ServerResponse.badRequest().bodyValue(SuccessResponse("Email confirmation request sent"))
                     }
                 }.switchIfEmpty {
-                    ServerResponse.badRequest().bodyValue(ApiResponse("User not found"))
+                    ServerResponse.badRequest().bodyValue(SuccessResponse("User not found"))
                 }
     }
 
@@ -77,10 +76,10 @@ class UsersHandler(
                         val updatedUser = it.copy(emailValid = true)
 
                         userRepository.save(updatedUser).flatMap {
-                            ServerResponse.ok().bodyValue(ApiResponse("Email confirmed successfully"))
+                            ServerResponse.ok().bodyValue(SuccessResponse("Email confirmed successfully"))
                         }
                     }.switchIfEmpty {
-                        ServerResponse.badRequest().bodyValue(ApiResponse("User not found"))
+                        ServerResponse.badRequest().bodyValue(SuccessResponse("User not found"))
                     }
         } else ServerResponse.badRequest().bodyValue(ErrorResponse("Reset token is not valid"))
     }
@@ -89,20 +88,20 @@ class UsersHandler(
         request.bodyToMono(ChangePasswordRequest::class.java).flatMap { changePasswordRequest ->
             userRepository.findByEmail(principal.name).flatMap getUser@{ user ->
                 if (!user.hasPassword) {
-                    return@getUser ServerResponse.badRequest().bodyValue(ApiResponse("User doesn't has a password"))
+                    return@getUser ServerResponse.badRequest().bodyValue(SuccessResponse("User doesn't has a password"))
                 }
 
                 if (!passwordEncoder.matches(changePasswordRequest.oldPassword, user.password)) {
-                    return@getUser ServerResponse.badRequest().bodyValue(ApiResponse("Old password didn't match"))
+                    return@getUser ServerResponse.badRequest().bodyValue(SuccessResponse("Old password didn't match"))
                 }
 
                 val updatedUser = user.copy(password = changePasswordRequest.newPassword)
 
                 userRepository.save(updatedUser).flatMap {
-                    ServerResponse.ok().bodyValue(ApiResponse("Password changed successfully"))
+                    ServerResponse.ok().bodyValue(SuccessResponse("Password changed successfully"))
                 }
             }.switchIfEmpty {
-                ServerResponse.badRequest().bodyValue(ApiResponse("User not found"))
+                ServerResponse.badRequest().bodyValue(SuccessResponse("User not found"))
             }
         }
     }

@@ -13,10 +13,13 @@ val routerBeans = beans {
                 val handler = AuthHandler(ref(), ref(), ref(), ref(), ref())
 
                 POST("/signup") { handler.signUp(it) }
-                POST("/signin") { handler.signInWithEmail(it) }
-                POST("/google") { handler.signInWithGoogle(it) }
+
+                "/signin".nest {
+                    POST("/email") { handler.signInEmail(it) }
+                    POST("/google") { handler.signInGoogle(it) }
+                }
                 POST("/forgotPassword") { handler.forgotPassword(it) }
-                GET("/checkResetPassword") { handler.checkResetPassword(it) }
+                GET("/resetPassword") { handler.checkResetPassword(it) }
                 POST("/resetPassword") { handler.resetPassword(it) }
             }
 
