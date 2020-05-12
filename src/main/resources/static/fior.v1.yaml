@@ -178,6 +178,148 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /users/me:
+    get:
+      summary: getMe
+      tags:
+        - User
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: getMe
+      description: Get currently authenticated user
+      security:
+        - token: []
+    put:
+      summary: updateMe
+      tags:
+        - User
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: updateMe
+      description: Update currently authenticated user
+      security:
+        - token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+  /users/me/sendEmailConfirmation:
+    post:
+      summary: sendEmailConfirmation
+      tags:
+        - User
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: sendEmailConfirmation
+      description: "Send email confirmation to authenticated user's email"
+      security:
+        - token: []
+  /users/me/confirmEmail:
+    post:
+      summary: confirmEmail
+      tags:
+        - User
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: post-users-me-confirmEmail
+      description: Confirm email of authenticated user with confirmation token from email
+      security:
+        - token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmEmailRequest'
+  /users/me/changePassword:
+    post:
+      summary: changePassword
+      tags:
+        - User
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: changePassword
+      description: Change password of currently authenticated user
+      security:
+        - token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
 components:
   schemas:
     SignUpRequest:
@@ -311,6 +453,45 @@ components:
       required:
         - token
         - password
+    UserUpdateRequest:
+      title: UserUpdateRequest
+      type: object
+      x-tags:
+        - User
+      description: Request with user update data
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+    ConfirmEmailRequest:
+      title: ConfirmEmailRequest
+      type: object
+      x-tags:
+        - Model
+      description: Request with confirm email data
+      properties:
+        token:
+          type: string
+      required:
+        - token
+    ChangePasswordRequest:
+      title: ChangePasswordRequest
+      type: object
+      x-tags:
+        - Model
+      description: Request with change password data
+      properties:
+        oldPassword:
+          type: string
+          format: password
+        newPassword:
+          type: string
+          format: password
+      required:
+        - oldPassword
+        - newPassword
   securitySchemes:
     token:
       type: http
@@ -319,5 +500,7 @@ components:
 tags:
   - name: Auth
     description: Endpoints related to authentication
+  - name: User
+    description: Endpoints related to users
   - name: Models
     description: Models of the API
