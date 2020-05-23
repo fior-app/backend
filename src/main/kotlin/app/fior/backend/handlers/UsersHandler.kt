@@ -6,10 +6,12 @@ import app.fior.backend.services.TokenService
 import app.fior.backend.services.EmailService
 import io.jsonwebtoken.Claims
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.kotlin.core.publisher.switchIfEmpty
 
+@Component
 class UsersHandler(
         private val userRepository: UserRepository,
         private val emailService: EmailService,

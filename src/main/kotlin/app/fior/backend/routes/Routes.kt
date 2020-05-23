@@ -3,40 +3,43 @@ package app.fior.backend.routes
 import app.fior.backend.handlers.AuthHandler
 import app.fior.backend.handlers.IndexHandler
 import app.fior.backend.handlers.UsersHandler
-import org.springframework.context.support.beans
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import org.springframework.web.reactive.function.server.RouterFunction
+import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.router
 
-val routerBeans = beans {
-    bean {
-        router {
-            "/auth".nest {
-                val handler = AuthHandler(ref(), ref(), ref(), ref(), ref())
+@Configuration
+class Router(
+        private val indexHandler: IndexHandler,
+        private val authHandler: AuthHandler,
+        private val usersHandler: UsersHandler
+) {
 
-                POST("/signup") { handler.signUp(it) }
+    @Bean
+    fun routes(): RouterFunction<ServerResponse> = router {
+        "/auth".nest {
+            POST("/signup") { authHandler.signUp(it) }
 
-                "/signin".nest {
-                    POST("/email") { handler.signInEmail(it) }
-                    POST("/google") { handler.signInGoogle(it) }
-                }
-                POST("/forgotPassword") { handler.forgotPassword(it) }
-                GET("/resetPassword") { handler.checkResetPassword(it) }
-                POST("/resetPassword") { handler.resetPassword(it) }
+            "/signin".nest {
+                POST("/email") { authHandler.signInEmail(it) }
+                POST("/google") { authHandler.signInGoogle(it) }
             }
-
-            "/users".nest {
-                val handler = UsersHandler(ref(), ref(), ref(), ref())
-
-                "/me".nest {
-                    POST("/sendEmailConfirmation") { handler.sendEmailConfirmation(it) }
-                    POST("/confirmEmail") { handler.confirmEmail(it) }
-                    POST("/changePassword") { handler.changePassword(it) }
-                    GET("/") { handler.getMe(it) }
-                    PUT("/") { handler.updateMe(it) }
-                }
-            }
-
-            val handler = IndexHandler()
-            GET("/") { handler.get() }
+            POST("/forgotPassword") { authHandler.forgotPassword(it) }
+            GET("/resetPassword") { authHandler.checkResetPassword(it) }
+            POST("/resetPassword") { authHandler.resetPassword(it) }
         }
+
+        "/users".nest {
+            "/me".nest {
+                POST("/sendEmailConfirmation") { usersHandler.sendEmailConfirmation(it) }
+                POST("/confirmEmail") { usersHandler.confirmEmail(it) }
+                POST("/changePassword") { usersHandler.changePassword(it) }
+                GET("/") { usersHandler.getMe(it) }
+                PUT("/") { usersHandler.updateMe(it) }
+            }
+        }
+
+        GET("/") { indexHandler.get() }
     }
 }

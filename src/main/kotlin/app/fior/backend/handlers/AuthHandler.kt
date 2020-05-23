@@ -8,11 +8,13 @@ import app.fior.backend.services.GoogleAuthService
 import app.fior.backend.services.TokenService
 import io.jsonwebtoken.Claims
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 
+@Component
 class AuthHandler(
         private val userRepository: UserRepository,
         private val passwordEncoder: BCryptPasswordEncoder,
