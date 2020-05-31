@@ -7,6 +7,7 @@ import app.fior.backend.services.EmailService
 import app.fior.backend.services.GoogleAuthService
 import app.fior.backend.services.TokenService
 import io.jsonwebtoken.Claims
+import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -23,14 +24,14 @@ class AuthHandler(
         private val googleAuthService: GoogleAuthService
 ) {
 
-    fun signUp(request: ServerRequest) = request.bodyToMono(SignUpRequest::class.java).map { user ->
-        user.password = passwordEncoder.encode(user.password)
-        user
-    }.flatMap { user ->
-        userRepository.findByEmail(user.email)
+    fun signUp(signUpRequest: ServerRequest) = signUpRequest.bodyToMono(SignUpRequest::class.java).map { request ->
+        request.password = passwordEncoder.encode(request.password)
+        request
+    }.flatMap { request ->
+        userRepository.findByEmail(request.email)
                 .flatMap { ServerResponse.badRequest().bodyValue(ErrorResponse("User already exist")) }
                 .switchIfEmpty {
-                    userRepository.save(User(user)).flatMap {
+                    userRepository.save(User(request)).flatMap {
                         ServerResponse.ok().bodyValue(SuccessResponse("User created successfully"))
                     }
                 }
@@ -42,10 +43,10 @@ class AuthHandler(
                     if (passwordEncoder.matches(login.password, user.password)) {
                         ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(user)))
                     } else {
-                        ServerResponse.status(401).bodyValue(ErrorResponse("Invalid credentials"))
+                        ServerResponse.status(HttpStatus.UNAUTHORIZED).bodyValue(ErrorResponse("Invalid credentials"))
                     }
                 }.switchIfEmpty {
-                    ServerResponse.status(401).bodyValue(ErrorResponse("User does not exist"))
+                    ServerResponse.status(HttpStatus.UNAUTHORIZED).bodyValue(ErrorResponse("User does not exist"))
                 }
     }
 
@@ -60,7 +61,7 @@ class AuthHandler(
             }
         }
     }.switchIfEmpty {
-        ServerResponse.status(401).bodyValue(ErrorResponse("Invalid id token"))
+        ServerResponse.status(HttpStatus.UNAUTHORIZED).bodyValue(ErrorResponse("Invalid id token"))
     }
 
     fun forgotPassword(request: ServerRequest) = request.bodyToMono(ForgotPasswordRequest::class.java).flatMap { req ->
