@@ -2,6 +2,7 @@ package app.fior.backend
 
 import app.fior.backend.data.UserRepository
 import app.fior.backend.dto.ForgotPasswordRequest
+import app.fior.backend.dto.ResetPasswordRequest
 import app.fior.backend.dto.SignInEmailRequest
 import app.fior.backend.dto.SignUpRequest
 import app.fior.backend.model.User
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
+import reactor.core.publisher.Mono
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
@@ -109,7 +111,7 @@ class AuthTests {
 
     // ForgotPassword tests
     @Test
-    fun forgotPasswordSuccess() {
+    fun postForgotPasswordSuccess() {
         val request = ForgotPasswordRequest("user@fior.app")
 
         client.post().uri("/auth/forgotPassword").accept(MediaType.APPLICATION_JSON)
@@ -121,7 +123,7 @@ class AuthTests {
     }
 
     @Test
-    fun forgotPasswordUserNotFound() {
+    fun postForgotPasswordUserNotFound() {
         val request = ForgotPasswordRequest("user3@fior.app")
 
         client.post().uri("/auth/forgotPassword").accept(MediaType.APPLICATION_JSON)
@@ -134,9 +136,9 @@ class AuthTests {
 
     // check reset password tests
     @Test
-    fun checkResetPasswordSuccess() {
+    fun getCheckResetPasswordSuccess() {
 
-        generateResetPasswordToken("fior user", "user@fior.app", "pass123@").map { token ->
+        Mono.just(generateResetPasswordToken("fior user", "user@fior.app", "pass123@")).map { token ->
             client.get().uri("/auth/resetPassword?token=${token}")
                     .accept(MediaType.APPLICATION_JSON)
                     .exchange()
@@ -147,9 +149,9 @@ class AuthTests {
     }
 
     @Test
-    fun checkResetPasswordUserNotFound() {
+    fun getCheckResetPasswordUserNotFound() {
 
-        generateResetPasswordToken("fior user", "no-user@fior.app", "pass123@").map { token ->
+        Mono.just(generateResetPasswordToken("fior user", "no-user@fior.app", "pass123@")).map { token ->
             client.get().uri("/auth/resetPassword?token=${token}")
                     .accept(MediaType.APPLICATION_JSON)
                     .exchange()
@@ -160,9 +162,9 @@ class AuthTests {
     }
 
     @Test
-    fun checkResetPasswordTokenNotValid() {
+    fun getCheckResetPasswordTokenNotValid() {
 
-        generateResetPasswordToken("fior user", "user@fior.app", "pass123@").map { token ->
+        Mono.just(generateResetPasswordToken("fior user", "user@fior.app", "pass123@")).map { token ->
             client.get().uri("/auth/resetPassword?token=${token}abc")
                     .accept(MediaType.APPLICATION_JSON)
                     .exchange()
@@ -173,11 +175,59 @@ class AuthTests {
     }
 
     @Test
-    fun checkResetPasswordParamNotFound() {
+    fun getCheckResetPasswordParamNotFound() {
 
-        generateResetPasswordToken("fior user", "user@fior.app", "pass123@").map { token ->
+        Mono.just(generateResetPasswordToken("fior user", "user@fior.app", "pass123@")).map { _ ->
             client.get().uri("/auth/resetPassword")
                     .accept(MediaType.APPLICATION_JSON)
+                    .exchange()
+                    .expectStatus().isBadRequest
+                    .expectBody()
+                    .jsonPath("$.message").isEqualTo("Token query parameter is not found")
+        }
+    }
+
+    // reset password test
+    @Test
+    fun postResetPasswordSuccess() {
+
+        Mono.just(generateResetPasswordToken("fior user", "user@fior.app", "pass123@")).map { token ->
+            ResetPasswordRequest(token, "newPassword")
+        }.map { request ->
+            client.post().uri("/auth/resetPassword")
+                    .accept(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .exchange()
+                    .expectStatus().isBadRequest
+                    .expectBody()
+                    .jsonPath("$.message").isEqualTo("Password reset successfully")
+        }
+    }
+
+    @Test
+    fun postResetPasswordUserNotFound() {
+
+        Mono.just(generateResetPasswordToken("fior user", "no-user@fior.app", "pass123@")).map { token ->
+            ResetPasswordRequest(token, "newPassword")
+        }.map { request ->
+            client.post().uri("/auth/resetPassword")
+                    .accept(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .exchange()
+                    .expectStatus().isBadRequest
+                    .expectBody()
+                    .jsonPath("$.message").isEqualTo("User not found")
+        }
+    }
+
+    @Test
+    fun postResetPassword() {
+        Mono.just(generateResetPasswordToken("fior user", "user@fior.app", "pass123@")).map { token ->
+            ResetPasswordRequest(token, "newPassword")
+        }.map { request ->
+            client.post().uri("/auth/resetPassword")
+                    .accept(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
                     .exchange()
                     .expectStatus().isBadRequest
                     .expectBody()
