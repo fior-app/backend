@@ -2,9 +2,10 @@ package app.fior.backend.handlers
 
 import app.fior.backend.data.UserRepository
 import app.fior.backend.dto.*
-import app.fior.backend.services.TokenService
 import app.fior.backend.services.EmailService
+import app.fior.backend.services.TokenService
 import io.jsonwebtoken.Claims
+import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
@@ -24,7 +25,7 @@ class UsersHandler(
                 .flatMap {
                     ServerResponse.ok().bodyValue(it)
                 }.switchIfEmpty {
-                    ServerResponse.status(401).bodyValue(SuccessResponse("User not found"))
+                    ServerResponse.status(HttpStatus.UNAUTHORIZED).bodyValue(SuccessResponse("User not found"))
                 }
     }
 
