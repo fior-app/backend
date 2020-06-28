@@ -1,8 +1,6 @@
 package app.fior.backend.routes
 
-import app.fior.backend.handlers.AuthHandler
-import app.fior.backend.handlers.IndexHandler
-import app.fior.backend.handlers.UsersHandler
+import app.fior.backend.handlers.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.server.RouterFunction
@@ -13,7 +11,8 @@ import org.springframework.web.reactive.function.server.router
 class Router(
         private val indexHandler: IndexHandler,
         private val authHandler: AuthHandler,
-        private val usersHandler: UsersHandler
+        private val usersHandler: UsersHandler,
+        private val chatroomHandler: ChatroomHandler
 ) {
 
     @Bean
@@ -39,6 +38,8 @@ class Router(
                 PUT("/") { usersHandler.updateMe(it) }
             }
         }
+
+        GET("/chatrooms") { chatroomHandler.getPrivateChatRoom(it) }
 
         GET("/") { indexHandler.get() }
     }
