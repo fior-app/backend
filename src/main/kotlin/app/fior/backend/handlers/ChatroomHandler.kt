@@ -14,10 +14,8 @@ import app.fior.backend.model.commiunication.text.privatechat.PrivateChatroomPar
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
-import reactor.core.publisher.Flux
 import reactor.core.publisher.UnicastProcessor
 import reactor.kotlin.core.publisher.switchIfEmpty
-import java.util.logging.Logger
 
 @Component
 class ChatroomHandler(
@@ -53,10 +51,28 @@ class ChatroomHandler(
         }
     }
 
-    fun sendMessage(request: ServerRequest) = request.bodyToMono(Message::class.java).flatMap {
-        messageRepository.save(it).flatMap { msg ->
-            messagesPublisher.onNext(msg)
-            ServerResponse.ok().bodyValue(SuccessResponse("message sent!"))
+    fun sendMessage(request: ServerRequest) = request.principal().flatMap { principal ->
+        request.bodyToMono(Message::class.java).flatMap { msg ->
+            userRepository.findByEmail(principal.name)
+                    .flatMap { user ->
+                        chatroomRepository.findById(
+                                msg.roomId
+                        ).flatMap { chatroom ->
+                            privateChatroomParticipantRepository.findByRoomIdAndParticipant1(chatroom.id!!, user.id!!).flatMap {
+                                messageRepository.save(msg).flatMap { msg ->
+                                    messagesPublisher.onNext(msg)
+                                    ServerResponse.ok().bodyValue(SuccessResponse("message sent!"))
+                                }
+                            }.switchIfEmpty {
+                                ServerResponse.status(403).bodyValue(ErrorResponse("You are not participant"))
+                            }
+                        }.switchIfEmpty {
+                            ServerResponse.status(404).bodyValue(ErrorResponse("Room not found"))
+                        }
+
+                    }.switchIfEmpty {
+                        ServerResponse.status(404).bodyValue(ErrorResponse("User not found"))
+                    }
         }
     }
 }
