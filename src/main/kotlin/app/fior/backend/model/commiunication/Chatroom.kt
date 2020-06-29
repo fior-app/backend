@@ -6,6 +6,8 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document(collection = "chatrooms")
 data class Chatroom(
         @Id val id: String? = null,
-        val name: String) {
-    constructor(name: String) : this(id = null, name = name)
+        val name: String,
+        val private:Boolean
+) {
+    constructor(name: String,private: Boolean) : this(id = null, name = name,private = private)
 }

@@ -39,7 +39,10 @@ class Router(
             }
         }
 
-        GET("/chatrooms") { chatroomHandler.getPrivateChatRoom(it) }
+        "/chatrooms".nest {
+            GET("/") { chatroomHandler.getPrivateChatRoom(it) }
+            POST("/send") { chatroomHandler.sendMessage(it) }
+        }
 
         GET("/") { indexHandler.get() }
     }
