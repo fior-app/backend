@@ -1,6 +1,9 @@
 package app.fior.backend.routes
 
-import app.fior.backend.handlers.*
+import app.fior.backend.handlers.AuthHandler
+import app.fior.backend.handlers.ChatroomHandler
+import app.fior.backend.handlers.IndexHandler
+import app.fior.backend.handlers.UsersHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.server.RouterFunction
@@ -40,7 +43,7 @@ class Router(
         }
 
         "/chatrooms".nest {
-            GET("/") { chatroomHandler.getPrivateChatRoom(it) }
+            GET("/private") { chatroomHandler.getPrivateChatRoom(it) }
             POST("/send") { chatroomHandler.sendMessage(it) }
         }
 

@@ -47,7 +47,7 @@ class SSE(messages: Flux<Message>,
 //        }
 //    }
 
-    @GetMapping(path = ["/sse/{roomId}"], produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    @GetMapping(path = ["/sse/chatroom/{roomId}"], produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun streamFlux(@PathVariable("roomId") roomId: String, principal: Principal): Publisher<Message> {
         return Flux.create<Message> { sink ->
             outputs.filter { message -> message.roomId == roomId }.subscribe {
