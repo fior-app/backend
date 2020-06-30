@@ -2,6 +2,7 @@ package app.fior.backend.routes
 
 import app.fior.backend.handlers.AuthHandler
 import app.fior.backend.handlers.IndexHandler
+import app.fior.backend.handlers.QuestionHandler
 import app.fior.backend.handlers.UsersHandler
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -13,7 +14,8 @@ import org.springframework.web.reactive.function.server.router
 class Router(
         private val indexHandler: IndexHandler,
         private val authHandler: AuthHandler,
-        private val usersHandler: UsersHandler
+        private val usersHandler: UsersHandler,
+        private val questionHandler: QuestionHandler
 ) {
 
     @Bean
@@ -38,6 +40,14 @@ class Router(
                 GET("/") { usersHandler.getMe(it) }
                 PUT("/") { usersHandler.updateMe(it) }
             }
+        }
+
+        "/questions".nest {
+            GET("/") { questionHandler.getQuestions(it) }
+            GET("/{id}") { questionHandler.getQuestion(it) }
+            POST("/") { questionHandler.createQuestion(it) }
+            PATCH("/{id}") { questionHandler.updateQuestion(it) }
+            DELETE("/{id}") { questionHandler.deleteQuestion(it) }
         }
 
         GET("/") { indexHandler.get() }
