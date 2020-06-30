@@ -320,6 +320,145 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ChangePasswordRequest'
+  /questions:
+    get:
+      summary: getQuestions
+      tags:
+        - Question
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+      operationId: getQuestions
+      description: Get all the questions
+    post:
+      summary: createQuestion
+      tags:
+        - Question
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: createquestions
+      description: Create new question
+      security:
+        - token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionCreateRequest'
+  '/questions/{id}':
+    parameters:
+      - schema:
+          type: string
+        name: id
+        in: path
+        required: true
+    get:
+      summary: getQuestion
+      tags:
+        - Question
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: getQuestion
+      description: Get a single question by id
+    patch:
+      summary: updateQuestion
+      tags:
+        - Question
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: updateQuestion
+      description: 'Update a question created by authenticated user '
+      security:
+        - token: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionUpdateRequest'
+    delete:
+      summary: deleteQuestion
+      tags:
+        - Question
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: deleteQuestion
+      description: Delete a question created my authenticated user
+      security:
+        - token: []
 components:
   schemas:
     SignUpRequest:
@@ -492,6 +631,72 @@ components:
       required:
         - oldPassword
         - newPassword
+    QuestionCreateRequest:
+      title: QuestionCreateRequest
+      type: object
+      x-tags:
+        - Model
+      description: Request with new question data
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - title
+        - description
+    QuestionUpdateRequest:
+      title: QuestionUpdateRequest
+      type: object
+      x-tags:
+        - Model
+      description: Request with question update data
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+    Question:
+      title: Question
+      type: object
+      x-tags:
+        - Model
+      description: Model with question data
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        votes:
+          type: number
+        createdBy:
+          $ref: '#/components/schemas/UserCompact'
+      required:
+        - id
+        - title
+        - description
+        - votes
+        - createdBy
+    UserCompact:
+      title: UserCompact
+      type: object
+      x-tags:
+        - Model
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+      required:
+        - id
+        - name
+        - email
+      description: Compact model of user data
   securitySchemes:
     token:
       type: http
@@ -502,5 +707,7 @@ tags:
     description: Endpoints related to authentication
   - name: User
     description: Endpoints related to users
+  - name: Question
+    description: Endpoints related to questions
   - name: Models
     description: Models of the API
