@@ -28,4 +28,12 @@ data class User(
             hasPassword = false,
             password = null
     )
+
+    fun compact() = CompactUser(id!!, name, email)
 }
+
+data class CompactUser(
+        @Id val id: String,
+        val name: String,
+        val email: String
+)
