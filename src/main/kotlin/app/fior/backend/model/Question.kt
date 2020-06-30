@@ -11,21 +11,24 @@ data class Question(
         val title: String,
         val description: String,
         val votes: Int,
+        val skills: List<SkillCompact>,
         val createdBy: UserCompact
 ) {
 
-    constructor(question: QuestionCreateRequest, user: UserCompact) : this(
+    constructor(question: QuestionCreateRequest, skills: List<SkillCompact>, user: UserCompact) : this(
             null,
             question.title,
             question.description,
             0,
+            skills,
             user
     )
 
-    fun updated(new: QuestionUpdateRequest): Question {
+    fun updated(new: QuestionUpdateRequest, updatedSkills: List<SkillCompact>? = null): Question {
         return this.copy(
                 title = new.title ?: this.title,
-                description = new.description ?: this.description
+                description = new.description ?: this.description,
+                skills = updatedSkills ?: this.skills
         )
     }
 

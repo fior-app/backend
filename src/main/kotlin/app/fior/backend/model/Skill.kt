@@ -14,3 +14,8 @@ data class Skill(
             false
     )
 }
+
+data class SkillCompact(
+        @Id val id: String,
+        val name: String
+)
