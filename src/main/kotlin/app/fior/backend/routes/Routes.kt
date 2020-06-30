@@ -1,10 +1,6 @@
 package app.fior.backend.routes
 
-import app.fior.backend.handlers.AuthHandler
-import app.fior.backend.handlers.ChatroomHandler
-import app.fior.backend.handlers.IndexHandler
-import app.fior.backend.handlers.QuestionHandler
-import app.fior.backend.handlers.UsersHandler
+import app.fior.backend.handlers.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.server.RouterFunction
@@ -17,7 +13,8 @@ class Router(
         private val authHandler: AuthHandler,
         private val usersHandler: UsersHandler,
         private val chatroomHandler: ChatroomHandler,
-        private val questionHandler: QuestionHandler
+        private val questionHandler: QuestionHandler,
+        private val skillHandler: SkillHandler
 ) {
 
     @Bean
@@ -55,6 +52,13 @@ class Router(
             POST("/") { questionHandler.createQuestion(it) }
             PATCH("/{id}") { questionHandler.updateQuestion(it) }
             DELETE("/{id}") { questionHandler.deleteQuestion(it) }
+        }
+
+        "/skills".nest {
+            GET("/") { skillHandler.getSkills(it) }
+            GET("/search") { skillHandler.searchSkills(it) }
+            POST("/") { skillHandler.createSkill(it) }
+            DELETE("/{id}") { skillHandler.deleteSkill(it) }
         }
 
         GET("/") { indexHandler.get() }
