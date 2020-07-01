@@ -48,10 +48,15 @@ class Router(
 
         "/questions".nest {
             GET("/") { questionHandler.getQuestions(it) }
-            GET("/{id}") { questionHandler.getQuestion(it) }
+            GET("/{questionId}") { questionHandler.getQuestion(it) }
             POST("/") { questionHandler.createQuestion(it) }
-            PATCH("/{id}") { questionHandler.updateQuestion(it) }
-            DELETE("/{id}") { questionHandler.deleteQuestion(it) }
+            PATCH("/{questionId}") { questionHandler.updateQuestion(it) }
+            DELETE("/{questionId}") { questionHandler.deleteQuestion(it) }
+            GET("/{questionId}/answers") { questionHandler.getAnswers(it) }
+            POST("/{questionId}/answers") { questionHandler.createAnswer(it) }
+            PATCH("/{questionId}/answers/{answerId}") { questionHandler.updateAnswer(it) }
+            DELETE("/{questionId}/answers/{answerId}") { questionHandler.deleteAnswer(it) }
+            POST("/{questionId}/answers/{answerId}/correct") { questionHandler.setCorrectAnswer(it) }
         }
 
         "/skills".nest {
