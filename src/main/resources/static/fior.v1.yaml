@@ -459,6 +459,77 @@ paths:
       description: Delete a question created my authenticated user
       security:
         - token: []
+  /chatrooms/private:
+    post:
+      summary: ''
+      operationId: privateChatroom
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrivateChatroomPartcipant'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      description: Get details of a private chatroom of particular 2 users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrivateChatRoomRequest'
+  /chatrooms/send:
+    post:
+      summary: ''
+      operationId: sendMessage
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      description: Endpoint to send text messages to chatrooms
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+  '/sse/chatroom/{roomId}':
+    parameters:
+      - schema:
+          type: string
+        name: roomId
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+      operationId: getMessages
+      description: Stream of messages for realtime messaging
 components:
   schemas:
     SignUpRequest:
@@ -697,6 +768,57 @@ components:
         - name
         - email
       description: Compact model of user data
+    PrivateChatRoomRequest:
+      title: PrivateChatRoomRequest
+      type: object
+      properties:
+        allieId:
+          type: string
+      required:
+        - allieId
+      description: Request for private chatroom details
+    PrivateChatroomPartcipant:
+      title: PrivateChatroomPartcipant
+      type: object
+      properties:
+        id:
+          type: string
+        roomId:
+          type: string
+        participant1:
+          type: string
+        participant2:
+          type: string
+        state:
+          type: string
+          enum:
+            - REQUEST
+            - CONFIRM
+            - OK
+            - REQUEST_DECLINED
+            - CONFIRM_DECLINED
+      required:
+        - id
+        - roomId
+        - participant1
+        - participant2
+        - state
+      description: 'Response of the private chatroom details request '
+    Message:
+      title: Message
+      type: object
+      properties:
+        roomId:
+          type: string
+        message:
+          type: string
+        senderId:
+          type: string
+      required:
+        - roomId
+        - message
+        - senderId
+      description: Text message to send for chatroom
   securitySchemes:
     token:
       type: http
