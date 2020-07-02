@@ -45,6 +45,7 @@ class Router(
         "/chatrooms".nest {
             POST("/private") { chatroomHandler.getPrivateChatRoom(it) }
             POST("/send") { chatroomHandler.sendMessage(it) }
+            GET("/private/{roomId}/messages") { chatroomHandler.getPrivateMessages(it) }
         }
 
         "/questions".nest {
