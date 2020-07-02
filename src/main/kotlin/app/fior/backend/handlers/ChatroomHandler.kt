@@ -75,4 +75,24 @@ class ChatroomHandler(
                     }
         }
     }
+
+    fun getPrivateMessages(request: ServerRequest) = request.principal().flatMap { principal ->
+        userRepository.findByEmail(principal.name)
+                .flatMap { user ->
+                    chatroomRepository.findById(
+                            request.pathVariable("roomId")
+                    ).flatMap { chatroom ->
+                        privateChatroomParticipantRepository.findByRoomIdAndParticipant1(chatroom.id!!, user.id!!)
+                                .flatMap { participant ->
+                                    ServerResponse.ok().body(messageRepository.findAllByRoomId(participant.roomId), Message::class.java)
+                                }.switchIfEmpty {
+                                    ServerResponse.status(403).bodyValue(ErrorResponse("You are not participant"))
+                                }
+                    }.switchIfEmpty {
+                        ServerResponse.status(404).bodyValue(ErrorResponse("Room not found"))
+                    }
+                }.switchIfEmpty {
+                    ServerResponse.status(404).bodyValue(ErrorResponse("User not found"))
+                }
+    }
 }
