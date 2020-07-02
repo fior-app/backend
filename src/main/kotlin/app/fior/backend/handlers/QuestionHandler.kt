@@ -4,12 +4,10 @@ import app.fior.backend.data.AnswerRepository
 import app.fior.backend.data.QuestionRepository
 import app.fior.backend.data.SkillRepository
 import app.fior.backend.data.UserRepository
-import app.fior.backend.dto.AnswerCreateRequest
-import app.fior.backend.dto.AnswerUpdateRequest
-import app.fior.backend.dto.QuestionCreateRequest
-import app.fior.backend.dto.QuestionUpdateRequest
+import app.fior.backend.dto.*
 import app.fior.backend.extensions.*
 import app.fior.backend.model.Answer
+import app.fior.backend.model.Comment
 import app.fior.backend.model.Question
 import app.fior.backend.model.SkillCompact
 import org.springframework.stereotype.Component
@@ -97,6 +95,65 @@ class QuestionHandler(
                 }
             }.switchIfEmpty {
                 "Question not found".toNotFoundServerResponse()
+            }
+
+    fun createQuestionComment(request: ServerRequest) = questionRepository.findById(request.pathVariable("questionId"))
+            .flatMap { question ->
+                Mono.zip(
+                        request.principalUser(userRepository),
+                        request.bodyToMono(CommentCreateRequest::class.java)
+                ).flatMap { (user, comment) ->
+                    questionRepository.save(
+                            question.withNewComment(Comment(comment, user.compact()))
+                    ).flatMap {
+                        "Comment created successfully".toSuccessServerResponse()
+                    }
+                }
+            }.switchIfEmpty {
+                "Question not found".toNotFoundServerResponse()
+            }
+
+    fun updateQuestionComment(request: ServerRequest) = questionRepository.findById(request.pathVariable("questionId"))
+            .flatMap { question ->
+                val comment = question.comments
+                        .find { it.id == request.pathVariable("commentId") }
+                        ?: return@flatMap Mono.empty<ServerResponse>()
+
+                request.principalUser(userRepository).flatMap principal@{ user ->
+                    if (comment.createdBy.id != user.id)
+                        return@principal "Unauthorized".toUnauthorizedServerResponse()
+
+                    request.bodyToMono(CommentUpdateRequest::class.java)
+                            .flatMap { newComment ->
+                                questionRepository.save(
+                                        question.withUpdatedComment(comment, comment.updated(newComment))
+                                ).flatMap {
+                                    "Comment updated successfully".toSuccessServerResponse()
+                                }
+                            }
+                }
+            }.switchIfEmpty {
+                "Comment not found".toNotFoundServerResponse()
+            }
+
+    fun deleteQuestionComment(request: ServerRequest) = questionRepository.findById(request.pathVariable("questionId"))
+            .flatMap { question ->
+                val comment = question.comments
+                        .find { it.id == request.pathVariable("commentId") }
+                        ?: return@flatMap Mono.empty<ServerResponse>()
+
+                request.principalUser(userRepository).flatMap principal@{ user ->
+                    if (comment.createdBy.id != user.id)
+                        return@principal "Unauthorized".toUnauthorizedServerResponse()
+
+                    questionRepository.save(
+                            question.withDeletedComment(comment)
+                    ).flatMap {
+                        "Comment Deleted successfully".toSuccessServerResponse()
+                    }
+                }
+            }.switchIfEmpty {
+                "Comment not found".toNotFoundServerResponse()
             }
 
     fun getAnswers(request: ServerRequest) = questionRepository.existsById(request.pathVariable("questionId"))

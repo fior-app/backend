@@ -52,6 +52,9 @@ class Router(
             POST("/") { questionHandler.createQuestion(it) }
             PATCH("/{questionId}") { questionHandler.updateQuestion(it) }
             DELETE("/{questionId}") { questionHandler.deleteQuestion(it) }
+            POST("/{questionId}/comments") { questionHandler.createQuestionComment(it) }
+            PATCH("/{questionId}/comments/{commentId}") { questionHandler.updateQuestionComment(it) }
+            DELETE("/{questionId}/comments/{commentId}") { questionHandler.deleteQuestionComment(it) }
             GET("/{questionId}/answers") { questionHandler.getAnswers(it) }
             POST("/{questionId}/answers") { questionHandler.createAnswer(it) }
             PATCH("/{questionId}/answers/{answerId}") { questionHandler.updateAnswer(it) }

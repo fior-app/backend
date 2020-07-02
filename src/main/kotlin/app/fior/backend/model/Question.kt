@@ -14,6 +14,7 @@ data class Question(
         val votes: Int,
         val correctAnswer: String? = null,
         val skills: List<SkillCompact>,
+        val comments: List<Comment> = listOf(),
         val createdBy: UserCompact,
         val createdAt: ZonedDateTime = ZonedDateTime.now()
 ) {
@@ -25,6 +26,7 @@ data class Question(
             0,
             null,
             skills,
+            listOf<Comment>(),
             user
     )
 
@@ -39,6 +41,24 @@ data class Question(
     fun withCorrectAnswer(answerId: String?): Question {
         return this.copy(
                 correctAnswer = answerId
+        )
+    }
+
+    fun withNewComment(comment: Comment): Question {
+        return this.copy(
+                comments = this.comments.plus(comment)
+        )
+    }
+
+    fun withUpdatedComment(oldComment: Comment, newComment: Comment): Question {
+        return this.copy(
+                comments = this.comments.minus(oldComment).plus(newComment)
+        )
+    }
+
+    fun withDeletedComment(comment: Comment): Question {
+        return this.copy(
+                comments = this.comments.minus(comment)
         )
     }
 
