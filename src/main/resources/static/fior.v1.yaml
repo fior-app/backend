@@ -530,6 +530,37 @@ paths:
                 $ref: '#/components/schemas/Message'
       operationId: getMessages
       description: Stream of messages for realtime messaging
+  '/chatrooms/private/{roomId}/messages':
+    parameters:
+      - schema:
+          type: string
+        name: roomId
+        in: path
+        required: true
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      operationId: getPrivateMessages
+      description: Get Private Messages of a stream
 components:
   schemas:
     SignUpRequest:
