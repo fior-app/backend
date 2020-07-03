@@ -7,7 +7,6 @@ data class GroupCreateRequest(
         val description: String
 )
 
-
 data class GroupUpdateRequest(
         val name: String,
         val description: String
