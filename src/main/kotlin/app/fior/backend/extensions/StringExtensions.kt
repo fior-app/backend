@@ -21,3 +21,7 @@ fun String.toUnauthorizedServerResponse(): Mono<ServerResponse> {
 fun String.toNotFoundServerResponse(): Mono<ServerResponse> {
     return ServerResponse.status(HttpStatus.NOT_FOUND).bodyValue(ErrorResponse(this))
 }
+
+fun String.toForbiddenServerResponse(): Mono<ServerResponse> {
+    return ServerResponse.status(HttpStatus.FORBIDDEN).bodyValue(ErrorResponse(this))
+}

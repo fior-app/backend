@@ -15,7 +15,8 @@ class Router(
         private val chatroomHandler: ChatroomHandler,
         private val questionHandler: QuestionHandler,
         private val skillHandler: SkillHandler,
-        private val commentHandler: CommentHandler
+        private val commentHandler: CommentHandler,
+        private val groupHandler: GroupHandler
 ) {
 
     @Bean
@@ -72,6 +73,16 @@ class Router(
             GET("/search") { skillHandler.searchSkills(it) }
             POST("/") { skillHandler.createSkill(it) }
             DELETE("/{id}") { skillHandler.deleteSkill(it) }
+        }
+
+        "groups".nest {
+            POST("/") { groupHandler.createGroup(it) }
+            GET("/me") { groupHandler.groupsMe(it) }
+            GET("/me/all") { groupHandler.groupsMeAll(it) }
+            GET("/me/requests") { groupHandler.groupsMeRequests(it) }
+            POST("/member") { groupHandler.requestMemberToGroup(it) }
+            POST("/member/leave") { groupHandler.leaveGroup(it) }
+            POST("/member/state") { groupHandler.changeGroupState(it) }
         }
 
         GET("/") { indexHandler.get() }
