@@ -6,6 +6,7 @@ import app.fior.backend.dto.QuestionUpdateRequest
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
+import java.lang.Exception
 import java.time.ZonedDateTime
 
 @Document
@@ -32,5 +33,4 @@ data class Comment(
                 edited = true
         )
     }
-
 }

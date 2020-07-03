@@ -14,7 +14,8 @@ class Router(
         private val usersHandler: UsersHandler,
         private val chatroomHandler: ChatroomHandler,
         private val questionHandler: QuestionHandler,
-        private val skillHandler: SkillHandler
+        private val skillHandler: SkillHandler,
+        private val commentHandler: CommentHandler
 ) {
 
     @Bean
@@ -52,17 +53,17 @@ class Router(
             POST("/") { questionHandler.createQuestion(it) }
             PATCH("/{questionId}") { questionHandler.updateQuestion(it) }
             DELETE("/{questionId}") { questionHandler.deleteQuestion(it) }
-            POST("/{questionId}/comments") { questionHandler.createQuestionComment(it) }
-            PATCH("/{questionId}/comments/{commentId}") { questionHandler.updateQuestionComment(it) }
-            DELETE("/{questionId}/comments/{commentId}") { questionHandler.deleteQuestionComment(it) }
             GET("/{questionId}/answers") { questionHandler.getAnswers(it) }
             POST("/{questionId}/answers") { questionHandler.createAnswer(it) }
             PATCH("/{questionId}/answers/{answerId}") { questionHandler.updateAnswer(it) }
             DELETE("/{questionId}/answers/{answerId}") { questionHandler.deleteAnswer(it) }
             POST("/{questionId}/answers/{answerId}/correct") { questionHandler.setCorrectAnswer(it) }
-            POST("/{questionId}/answers/{answerId}/comments") { questionHandler.createAnswerComment(it) }
-            PATCH("/{questionId}/answers/{answerId}/comments/{commentId}") { questionHandler.updateAnswerComment(it) }
-            DELETE("/{questionId}/answers/{answerId}/comments/{commentId}") { questionHandler.deleteAnswerComment(it) }
+        }
+
+        "/comments".nest {
+            POST("/") { commentHandler.createComment(it) }
+            PATCH("/{commentId}") { commentHandler.updateComment(it) }
+            DELETE("/{commentId}") { commentHandler.deleteComment(it) }
         }
 
         "/skills".nest {
