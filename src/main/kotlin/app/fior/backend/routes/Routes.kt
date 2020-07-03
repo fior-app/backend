@@ -60,6 +60,9 @@ class Router(
             PATCH("/{questionId}/answers/{answerId}") { questionHandler.updateAnswer(it) }
             DELETE("/{questionId}/answers/{answerId}") { questionHandler.deleteAnswer(it) }
             POST("/{questionId}/answers/{answerId}/correct") { questionHandler.setCorrectAnswer(it) }
+            POST("/{questionId}/answers/{answerId}/comments") { questionHandler.createAnswerComment(it) }
+            PATCH("/{questionId}/answers/{answerId}/comments/{commentId}") { questionHandler.updateAnswerComment(it) }
+            DELETE("/{questionId}/answers/{answerId}/comments/{commentId}") { questionHandler.deleteAnswerComment(it) }
         }
 
         "/skills".nest {

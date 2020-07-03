@@ -14,6 +14,7 @@ data class Answer(
         val description: String,
         val votes: Int,
         val question: String,
+        val comments: List<Comment>,
         val createdBy: UserCompact,
         val createdAt: ZonedDateTime = ZonedDateTime.now()
 ) {
@@ -23,12 +24,32 @@ data class Answer(
             answer.description,
             0,
             question,
+            listOf<Comment>(),
             user
     )
 
     fun updated(new: AnswerUpdateRequest): Answer {
         return this.copy(
                 description = new.description
+        )
+    }
+
+
+    fun withNewComment(comment: Comment): Answer {
+        return this.copy(
+                comments = this.comments.plus(comment)
+        )
+    }
+
+    fun withUpdatedComment(oldComment: Comment, newComment: Comment): Answer {
+        return this.copy(
+                comments = this.comments.minus(oldComment).plus(newComment)
+        )
+    }
+
+    fun withDeletedComment(comment: Comment): Answer {
+        return this.copy(
+                comments = this.comments.minus(comment)
         )
     }
 

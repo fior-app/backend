@@ -247,4 +247,72 @@ class QuestionHandler(
     }.switchIfEmpty {
         "Answer not found".toNotFoundServerResponse()
     }
+
+    fun createAnswerComment(request: ServerRequest) = answerRepository.findById(request.pathVariable("answerId"))
+            .flatMap { answer ->
+                if (answer.question != request.pathVariable("questionId"))
+                    return@flatMap Mono.empty<ServerResponse>()
+
+                Mono.zip(
+                        request.principalUser(userRepository),
+                        request.bodyToMono(CommentCreateRequest::class.java)
+                ).flatMap { (user, comment) ->
+                    answerRepository.save(
+                            answer.withNewComment(Comment(comment, user.compact()))
+                    ).flatMap {
+                        "Comment created successfully".toSuccessServerResponse()
+                    }
+                }
+            }.switchIfEmpty {
+                "Answer not found".toNotFoundServerResponse()
+            }
+
+    fun updateAnswerComment(request: ServerRequest) = answerRepository.findById(request.pathVariable("answerId"))
+            .flatMap { answer ->
+                if (answer.question != request.pathVariable("questionId"))
+                    return@flatMap Mono.empty<ServerResponse>()
+
+                val comment = answer.comments
+                        .find { it.id == request.pathVariable("commentId") }
+                        ?: return@flatMap Mono.empty<ServerResponse>()
+
+                request.principalUser(userRepository).flatMap principal@{ user ->
+                    if (comment.createdBy.id != user.id)
+                        return@principal "Unauthorized".toUnauthorizedServerResponse()
+
+                    request.bodyToMono(CommentUpdateRequest::class.java)
+                            .flatMap { newComment ->
+                                answerRepository.save(
+                                        answer.withUpdatedComment(comment, comment.updated(newComment))
+                                ).flatMap {
+                                    "Comment updated successfully".toSuccessServerResponse()
+                                }
+                            }
+                }
+            }.switchIfEmpty {
+                "Comment not found".toNotFoundServerResponse()
+            }
+
+    fun deleteAnswerComment(request: ServerRequest) = answerRepository.findById(request.pathVariable("answerId"))
+            .flatMap { answer ->
+                if (answer.question != request.pathVariable("questionId"))
+                    return@flatMap Mono.empty<ServerResponse>()
+
+                val comment = answer.comments
+                        .find { it.id == request.pathVariable("commentId") }
+                        ?: return@flatMap Mono.empty<ServerResponse>()
+
+                request.principalUser(userRepository).flatMap principal@{ user ->
+                    if (comment.createdBy.id != user.id)
+                        return@principal "Unauthorized".toUnauthorizedServerResponse()
+
+                    answerRepository.save(
+                            answer.withDeletedComment(comment)
+                    ).flatMap {
+                        "Comment Deleted successfully".toSuccessServerResponse()
+                    }
+                }
+            }.switchIfEmpty {
+                "Comment not found".toNotFoundServerResponse()
+            }
 }
