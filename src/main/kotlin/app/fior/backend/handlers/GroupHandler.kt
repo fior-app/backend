@@ -90,7 +90,6 @@ class GroupHandler(
                         .flatMap { user ->
                             groupRepository.findById(memberAddRequest.groupId)
                                     .flatMap { group ->
-
                                         groupMemberRepository.findByGroupAndMember(group, user.compact())
                                                 .flatMap userMember@{ userMember ->
                                                     if (!userMember.hasPermission(GroupMember.Permission.SEND_MEMBER_REQUESTS))

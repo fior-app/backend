@@ -561,6 +561,161 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
       operationId: getPrivateMessages
       description: Get Private Messages of a stream
+  /groups/:
+    post:
+      summary: ''
+      operationId: createGroup
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+      description: Create a New group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupCreateRequest'
+  /groups/me:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupMember'
+      operationId: myGroups
+      description: Get my groups that accepted to participate
+  /group/me/all:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupMember'
+      operationId: myGroupsAll
+      description: get my all groups
+  /groups/me/requests:
+    get:
+      summary: Your GET endpoint
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupMember'
+      operationId: getGroupRequests
+      description: Get all requests to me from groups
+  /groups/member:
+    post:
+      summary: ''
+      operationId: newMemberRequestGroup
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberAddRequest'
+      description: request a new member to the group
+  /groups/member/leave:
+    post:
+      summary: ''
+      operationId: leaveGroup
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LeaveGroupRequest'
+      description: Request for leave a group
+  /groups/member/state:
+    post:
+      summary: ''
+      operationId: changeGroupState
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupStateChangeRequest'
+      description: Change state of a member of a group
 components:
   schemas:
     SignUpRequest:
@@ -850,6 +1005,130 @@ components:
         - message
         - senderId
       description: Text message to send for chatroom
+    GroupCreateRequest:
+      title: GroupCreateRequest
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+      required:
+        - name
+        - description
+      description: Requst to create groups
+    Group:
+      title: Group
+      type: object
+      description: Group model
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        createdBy:
+          $ref: '#/components/schemas/UserCompact'
+        chatroom:
+          $ref: '#/components/schemas/ChatroomCompact'
+      required:
+        - id
+        - name
+        - description
+        - createdBy
+        - chatroom
+    Chatroom:
+      title: Chatroom
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        private:
+          type: boolean
+      required:
+        - id
+        - name
+        - private
+    ChatroomCompact:
+      title: ChatroomCompact
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
+    GroupMember:
+      title: GroupMember
+      type: object
+      properties:
+        id:
+          type: string
+        group:
+          $ref: '#/components/schemas/Group'
+        member:
+          $ref: '#/components/schemas/UserCompact'
+        state:
+          type: string
+          enum:
+            - CONFIRM
+            - OK
+            - DECLINED
+        permissions:
+          type: array
+          items:
+            type: string
+            enum:
+              - SEND_MEMBER_REQUESTS
+              - REMOVE_MEMBER
+              - CLOSE_GROUP
+      required:
+        - id
+        - group
+        - member
+        - state
+        - permissions
+    MemberAddRequest:
+      title: MemberAddRequest
+      type: object
+      properties:
+        memberId:
+          type: string
+        groupId:
+          type: string
+      required:
+        - memberId
+        - groupId
+    LeaveGroupRequest:
+      title: LeaveGroupRequest
+      type: object
+      properties:
+        groupId:
+          type: string
+      required:
+        - groupId
+      description: Request for leave a group
+    GroupStateChangeRequest:
+      title: GroupStateChangeRequest
+      type: object
+      description: request model to change state of member
+      properties:
+        groupId:
+          type: string
+        state:
+          type: string
+          enum:
+            - CONFIRM
+            - OK
+            - DECLINED
+      required:
+        - groupId
+        - state
   securitySchemes:
     token:
       type: http
