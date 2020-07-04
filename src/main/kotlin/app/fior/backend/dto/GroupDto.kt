@@ -13,15 +13,9 @@ data class GroupUpdateRequest(
 )
 
 data class MemberAddRequest(
-        val memberId: String,
-        val groupId: String
-)
-
-data class GroupLeaveRequest(
-        val groupId: String
+        val memberId: String
 )
 
 data class GroupStateChangeRequest(
-        val groupId: String,
         val state: GroupMember.GroupMemberState
 )
