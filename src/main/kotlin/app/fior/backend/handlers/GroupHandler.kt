@@ -5,7 +5,6 @@ import app.fior.backend.data.GroupMemberRepository
 import app.fior.backend.data.GroupRepository
 import app.fior.backend.data.UserRepository
 import app.fior.backend.dto.GroupCreateRequest
-import app.fior.backend.dto.GroupLeaveRequest
 import app.fior.backend.dto.GroupStateChangeRequest
 import app.fior.backend.dto.MemberAddRequest
 import app.fior.backend.extensions.*
@@ -84,87 +83,69 @@ class GroupHandler(
                 )
             }
 
-    fun requestMemberToGroup(request: ServerRequest) = request.bodyToMono(MemberAddRequest::class.java)
-            .flatMap { memberAddRequest ->
-                request.principalUser(userRepository)
-                        .flatMap { user ->
-                            groupRepository.findById(memberAddRequest.groupId)
-                                    .flatMap { group ->
-                                        groupMemberRepository.findByGroupAndMember(group, user.compact())
-                                                .flatMap userMember@{ userMember ->
-                                                    if (!userMember.hasPermission(GroupMember.Permission.SEND_MEMBER_REQUESTS))
-                                                        return@userMember "Unauthorized to send requests".toUnauthorizedServerResponse()
-                                                    userRepository.findById(memberAddRequest.memberId)
-                                                            .flatMap { member ->
-                                                                groupMemberRepository.findByGroupAndMember(group, member.compact())
-                                                                        .flatMap { _ ->
-                                                                            "User is already a member".toForbiddenServerResponse()
-                                                                        }.switchIfEmpty {
-                                                                            groupMemberRepository.save(
-                                                                                    GroupMember(
-                                                                                            group,
-                                                                                            member.compact(),
-                                                                                            GroupMember.GroupMemberState.CONFIRM
-                                                                                    )
-                                                                            ).flatMap {
-                                                                                "User requested to group".toSuccessServerResponse()
-                                                                            }
-                                                                        }
-                                                            }.switchIfEmpty {
-                                                                "User not found".toNotFoundServerResponse()
-                                                            }
-                                                }.switchIfEmpty {
-                                                    "You are not a group member".toUnauthorizedServerResponse()
-                                                }
-                                    }.switchIfEmpty {
-                                        "Group not found".toNotFoundServerResponse()
-                                    }
+    fun requestMemberToGroup(request: ServerRequest) = Mono.zip(
+            request.bodyToMono(MemberAddRequest::class.java),
+            request.principalUser(userRepository),
+            groupRepository.findById(request.pathVariable("groupId"))
+    ).flatMap { (memberAddRequest, user, group) ->
+        Mono.zip(
+                groupMemberRepository.findByGroupAndMember(group, user.compact()),
+                userRepository.findById(memberAddRequest.memberId)
+        ).flatMap member@{ (userMember, member) ->
+            if (!userMember.hasPermission(GroupMember.Permission.SEND_MEMBER_REQUESTS))
+                return@member "Unauthorized to send requests".toUnauthorizedServerResponse()
+            groupMemberRepository.findByGroupAndMember(group, member.compact())
+                    .flatMap { _ ->
+                        "User is already a member".toForbiddenServerResponse()
+                    }.switchIfEmpty {
+                        groupMemberRepository.save(
+                                GroupMember(
+                                        group,
+                                        member.compact(),
+                                        GroupMember.GroupMemberState.CONFIRM
+                                )
+                        ).flatMap {
+                            "User requested to group".toSuccessServerResponse()
                         }
-            }
-
-    fun leaveGroup(request: ServerRequest) = request.principalUser(userRepository).flatMap { user ->
-        request.bodyToMono(GroupLeaveRequest::class.java)
-                .flatMap { groupLeaveRequest ->
-                    groupRepository.findById(groupLeaveRequest.groupId)
-                            .flatMap { group ->
-                                groupMemberRepository.findByGroupAndMember(group, user.compact())
-                                        .flatMap { groupMember ->
-                                            groupMemberRepository.delete(groupMember)
-                                                    .flatMap {
-                                                        "Group Leave successfully!".toSuccessServerResponse()
-                                                    }
-                                        }.switchIfEmpty {
-                                            "User are not a member in group".toForbiddenServerResponse()
-                                        }
-                            }.switchIfEmpty {
-                                "Group not found".toNotFoundServerResponse()
-                            }
-                }
-    }.switchIfEmpty {
-        "User not found".toNotFoundServerResponse()
+                    }
+        }.switchIfEmpty {
+            "User or group not found".toNotFoundServerResponse()
+        }
     }
 
-    fun changeGroupState(request: ServerRequest) = request.principalUser(userRepository)
-            .flatMap { user ->
-                request.bodyToMono(GroupStateChangeRequest::class.java)
-                        .flatMap { stateChangeRequest ->
-                            groupRepository.findById(stateChangeRequest.groupId)
-                                    .flatMap { group ->
-                                        groupMemberRepository.findByGroupAndMember(group, user.compact())
-                                                .flatMap { groupMember ->
-                                                    groupMember.state = stateChangeRequest.state
-                                                    groupMemberRepository.save(groupMember)
-                                                            .flatMap {
-                                                                "Group State changed!".toSuccessServerResponse()
-                                                            }
-                                                }.switchIfEmpty {
-                                                    "User is not a member in group".toForbiddenServerResponse()
-                                                }
-                                    }.switchIfEmpty {
-                                        "Group not found".toNotFoundServerResponse()
-                                    }
-                        }
-            }.switchIfEmpty {
-                "User not found".toNotFoundServerResponse()
-            }
+    fun leaveGroup(request: ServerRequest) = Mono.zip(
+            request.principalUser(userRepository),
+            groupRepository.findById(request.pathVariable("roomId"))
+    ).flatMap { (user, group) ->
+        groupMemberRepository.findByGroupAndMember(group, user.compact())
+                .flatMap { groupMember ->
+                    groupMemberRepository.delete(groupMember)
+                            .flatMap {
+                                "Group Leave successfully!".toSuccessServerResponse()
+                            }
+                }.switchIfEmpty {
+                    "User are not a member in group".toForbiddenServerResponse()
+                }
+    }.switchIfEmpty {
+        "Group not found".toNotFoundServerResponse()
+    }
+
+    fun changeGroupState(request: ServerRequest) = Mono.zip(
+            request.principalUser(userRepository),
+            request.bodyToMono(GroupStateChangeRequest::class.java),
+            groupRepository.findById(request.pathVariable("roomId"))
+    ).flatMap { (user, stateChangeRequest, group) ->
+        groupMemberRepository.findByGroupAndMember(group, user.compact())
+                .flatMap { groupMember ->
+                    groupMember.state = stateChangeRequest.state
+                    groupMemberRepository.save(groupMember)
+                            .flatMap {
+                                "Group State changed!".toSuccessServerResponse()
+                            }
+                }.switchIfEmpty {
+                    "User is not a member in group".toForbiddenServerResponse()
+                }
+    }.switchIfEmpty {
+        "Group not found".toNotFoundServerResponse()
+    }
 }

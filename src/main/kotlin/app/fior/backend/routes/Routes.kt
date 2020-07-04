@@ -80,9 +80,11 @@ class Router(
             GET("/me") { groupHandler.groupsMe(it) }
             GET("/me/all") { groupHandler.groupsMeAll(it) }
             GET("/me/requests") { groupHandler.groupsMeRequests(it) }
-            POST("/member") { groupHandler.requestMemberToGroup(it) }
-            POST("/member/leave") { groupHandler.leaveGroup(it) }
-            POST("/member/state") { groupHandler.changeGroupState(it) }
+            "/{groupId}/member".nest {
+                POST("/") { groupHandler.requestMemberToGroup(it) }
+                POST("/leave") { groupHandler.leaveGroup(it) }
+                POST("/state") { groupHandler.changeGroupState(it) }
+            }
         }
 
         GET("/") { indexHandler.get() }
