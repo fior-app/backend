@@ -49,31 +49,6 @@ class ChatroomHandler(
         }
     }
 
-//    fun sendMessage(request: ServerRequest) = request.principal().flatMap { principal ->
-//        request.bodyToMono(Message::class.java).flatMap { msg ->
-//            userRepository.findByEmail(principal.name)
-//                    .flatMap { user ->
-//                        chatroomRepository.findById(
-//                                msg.roomId
-//                        ).flatMap { chatroom ->
-//                            privateChatroomParticipantRepository.findByRoomIdAndParticipant1(chatroom.id!!, user.id!!).flatMap {
-//                                messageRepository.save(msg).flatMap { msg ->
-//                                    messagesPublisher.onNext(msg)
-//                                    ServerResponse.ok().bodyValue(SuccessResponse("message sent!"))
-//                                }
-//                            }.switchIfEmpty {
-//                                ServerResponse.status(403).bodyValue(ErrorResponse("You are not participant"))
-//                            }
-//                        }.switchIfEmpty {
-//                            ServerResponse.status(404).bodyValue(ErrorResponse("Room not found"))
-//                        }
-//
-//                    }.switchIfEmpty {
-//                        ServerResponse.status(404).bodyValue(ErrorResponse("User not found"))
-//                    }
-//        }
-//    }
-
     fun sendMessage(request: ServerRequest) = Mono.zip(
             request.principalUser(userRepository),
             request.bodyToMono(MessageRequest::class.java)
@@ -83,7 +58,7 @@ class ChatroomHandler(
                     when (chatroom.type) {
                         Chatroom.ChatroomType.PRIVATE -> {
                             privateChatroomParticipantRepository.findByRoomIdAndParticipant1(chatroom.id!!, user.id!!).flatMap {
-                                messageRepository.save(Message(request.pathVariable("roomId"), msgRequest)).flatMap { msg ->
+                                messageRepository.save(Message(request.pathVariable("roomId"), msgRequest, user.compact())).flatMap { msg ->
                                     messagesPublisher.onNext(msg)
                                     ServerResponse.ok().bodyValue(SuccessResponse("message sent!"))
                                 }
@@ -132,4 +107,20 @@ class ChatroomHandler(
                     ServerResponse.status(404).bodyValue(ErrorResponse("User not found"))
                 }
     }
+
+    fun getGroupMessages(request: ServerRequest) =
+            Mono.zip(
+                    request.principalUser(userRepository),
+                    groupRepository.findById(request.pathVariable("groupId"))
+            )
+                    .flatMap { (user, group) ->
+                        groupMemberRepository.findByGroupAndMember(group, user.compact())
+                                .flatMap { _ ->
+                                    ServerResponse.ok().body(messageRepository.findAllByRoomId(group.chatroom.id), Message::class.java)
+                                }.switchIfEmpty {
+                                    "You are not a participant of this room".toForbiddenServerResponse()
+                                }
+                    }.switchIfEmpty {
+                        ServerResponse.status(404).bodyValue(ErrorResponse("Group not found"))
+                    }
 }

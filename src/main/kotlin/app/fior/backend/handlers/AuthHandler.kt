@@ -31,8 +31,8 @@ class AuthHandler(
         userRepository.findByEmail(request.email)
                 .flatMap { ServerResponse.badRequest().bodyValue(ErrorResponse("User already exist")) }
                 .switchIfEmpty {
-                    userRepository.save(User(request)).flatMap {
-                        ServerResponse.ok().bodyValue(SuccessResponse("User created successfully"))
+                    userRepository.save(User(request)).flatMap { user ->
+                        ServerResponse.ok().bodyValue(SignUpResponse(tokenService.generateAuthToken(user)))
                     }
                 }
     }

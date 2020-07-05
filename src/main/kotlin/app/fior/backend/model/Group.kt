@@ -9,16 +9,28 @@ data class Group(
         @Id val id: String? = null,
         val name: String,
         val description: String,
+        val icon: String?,
         val createdBy: UserCompact,
-        val chatroom: ChatroomCompact
+        val chatroom: ChatroomCompact,
+        val members: Int
 ) {
 
-    constructor(name: String, description: String, createdBy: UserCompact, chatroom: ChatroomCompact) : this(
+    constructor(name: String, description: String, icon: String?, createdBy: UserCompact, chatroom: ChatroomCompact, members: Int = 1) : this(
             null,
             name,
             description,
+            icon,
             createdBy,
-            chatroom
+            chatroom,
+            members
     )
 
+    fun plusMember(): Group {
+        return this.copy(members = this.members + 1)
+    }
+
+
+    fun minusMember(): Group {
+        return this.copy(members = this.members - 1)
+    }
 }

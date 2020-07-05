@@ -19,6 +19,10 @@ data class SignInResponse(
         val token: String
 )
 
+data class SignUpResponse(
+        val token: String
+)
+
 data class ForgotPasswordRequest(
         val email: String
 )

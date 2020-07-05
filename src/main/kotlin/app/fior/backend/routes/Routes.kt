@@ -47,6 +47,7 @@ class Router(
             POST("/private") { chatroomHandler.getPrivateChatRoom(it) }
             POST("/{roomId}/send") { chatroomHandler.sendMessage(it) }
             GET("/private/{roomId}/messages") { chatroomHandler.getPrivateMessages(it) }
+            GET("/groups/{groupId}/messages") { chatroomHandler.getGroupMessages(it) }
         }
 
         "/questions".nest {
@@ -79,6 +80,7 @@ class Router(
             POST("/") { groupHandler.createGroup(it) }
             GET("/me") { groupHandler.groupsMe(it) }
             GET("/{groupId}") { groupHandler.getGroup(it) }
+            GET("/{groupId}/members") { groupHandler.getGroupMembers(it) }
             GET("/me/all") { groupHandler.groupsMeAll(it) }
             GET("/me/requests") { groupHandler.groupsMeRequests(it) }
             "/{groupId}/member".nest {
