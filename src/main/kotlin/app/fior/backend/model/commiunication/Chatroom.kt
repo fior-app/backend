@@ -7,14 +7,21 @@ import org.springframework.data.mongodb.core.mapping.Document
 data class Chatroom(
         @Id val id: String? = null,
         val name: String,
-        val private: Boolean
+        val type: ChatroomType
 ) {
-    constructor(name: String, private: Boolean) : this(id = null, name = name, private = private)
+    constructor(name: String, type: ChatroomType) : this(id = null, name = name, type = type)
 
-    fun compact() = ChatroomCompact(id!!, name)
+    fun compact() = ChatroomCompact(id!!, name, type)
+
+    enum class ChatroomType {
+        PRIVATE,
+        GROUP,
+        MENTORSPACE
+    }
 }
 
 data class ChatroomCompact(
         @Id val id: String,
-        val name: String
+        val name: String,
+        val type: Chatroom.ChatroomType
 )

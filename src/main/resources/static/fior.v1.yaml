@@ -482,7 +482,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PrivateChatRoomRequest'
-  /chatrooms/send:
+  '/chatrooms/{roomId}/send':
     post:
       summary: ''
       operationId: sendMessage
@@ -510,7 +510,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Message'
+              $ref: '#/components/schemas/MessageRequest'
+    parameters:
+      - schema:
+          type: string
+        name: roomId
+        in: path
+        required: true
   '/sse/chatroom/{roomId}':
     parameters:
       - schema:
@@ -530,7 +536,7 @@ paths:
                 $ref: '#/components/schemas/Message'
       operationId: getMessages
       description: Stream of messages for realtime messaging
-  '/chatrooms/private/{roomId}/messages':
+  '/chatroom/{roomId}':
     parameters:
       - schema:
           type: string
@@ -559,6 +565,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
       operationId: getPrivateMessages
       description: Get Private Messages of a stream
   /groups/:
@@ -1127,6 +1139,17 @@ components:
             - DECLINED
       required:
         - state
+    MessageRequest:
+      title: MessageRequest
+      type: object
+      properties:
+        senderId:
+          type: string
+        message:
+          type: string
+      required:
+        - senderId
+      description: Message request to send a message
   securitySchemes:
     token:
       type: http

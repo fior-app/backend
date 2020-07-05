@@ -1,6 +1,6 @@
 package app.fior.backend.dto
 
 data class MessageRequest(
-        val roomId: String,
-        val message: String
+        val message: String,
+        val senderId: String
 )
