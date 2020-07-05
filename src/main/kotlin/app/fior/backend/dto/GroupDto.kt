@@ -4,7 +4,8 @@ import app.fior.backend.model.GroupMember
 
 data class GroupCreateRequest(
         val name: String,
-        val description: String
+        val description: String,
+        val icon: String?
 )
 
 data class GroupUpdateRequest(
