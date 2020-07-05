@@ -1033,15 +1033,17 @@ components:
     GroupCreateRequest:
       title: GroupCreateRequest
       type: object
+      description: Requst to create groups
       properties:
         name:
           type: string
         description:
           type: string
+        icon:
+          type: string
       required:
         - name
         - description
-      description: Requst to create groups
     Group:
       title: Group
       type: object
@@ -1057,12 +1059,17 @@ components:
           $ref: '#/components/schemas/UserCompact'
         chatroom:
           $ref: '#/components/schemas/ChatroomCompact'
+        members:
+          type: integer
+        icon:
+          type: string
       required:
         - id
         - name
         - description
         - createdBy
         - chatroom
+        - members
     Chatroom:
       title: Chatroom
       type: object

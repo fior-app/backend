@@ -57,10 +57,28 @@ class GroupHandler(
             request.principalUser(userRepository),
             groupRepository.findById(request.pathVariable("groupId"))
     ).flatMap { (user, group) ->
-        print(group)
         groupMemberRepository.findByGroupAndMember(group, user.compact())
                 .flatMap {
                     ServerResponse.ok().bodyValue(group)
+                }.switchIfEmpty {
+                    "you are not a member in the group".toForbiddenServerResponse()
+                }
+    }.switchIfEmpty {
+        "group not found".toNotFoundServerResponse()
+    }
+
+    fun getGroupMembers(request: ServerRequest) = Mono.zip(
+            request.principalUser(userRepository),
+            groupRepository.findById(request.pathVariable("groupId"))
+    ).flatMap { (user, group) ->
+        groupMemberRepository.findByGroupAndMember(group, user.compact())
+                .flatMap {
+                    ServerResponse.ok().body(
+                            groupMemberRepository.findByGroup(group)
+                                    .skip(request.queryParam("skip").orElse("0").toLong())
+                                    .take(request.queryParam("limit").orElse("25").toLong()),
+                            GroupMember::class.java
+                    )
                 }.switchIfEmpty {
                     "you are not a member in the group".toForbiddenServerResponse()
                 }
