@@ -58,7 +58,7 @@ class ChatroomHandler(
                     when (chatroom.type) {
                         Chatroom.ChatroomType.PRIVATE -> {
                             privateChatroomParticipantRepository.findByRoomIdAndParticipant1(chatroom.id!!, user.id!!).flatMap {
-                                messageRepository.save(Message(request.pathVariable("roomId"), msgRequest)).flatMap { msg ->
+                                messageRepository.save(Message(request.pathVariable("roomId"), msgRequest, user.compact())).flatMap { msg ->
                                     messagesPublisher.onNext(msg)
                                     ServerResponse.ok().bodyValue(SuccessResponse("message sent!"))
                                 }
@@ -67,12 +67,12 @@ class ChatroomHandler(
                             }
                         }
                         Chatroom.ChatroomType.GROUP -> {
-                            groupRepository.findByChatroom(chatroom)
+                            groupRepository.findByChatroom(chatroom.compact())
                                     .flatMap { group ->
                                         groupMemberRepository.findByGroupAndMember(group, user.compact())
                                     }.flatMap { _ ->
-                                        messageRepository.save(Message(request.pathVariable("roomId"), msgRequest)).flatMap { msg ->
-                                            messagesPublisher.onNext(msg)
+                                        messageRepository.save(Message(request.pathVariable("roomId"), msgRequest, user.compact())).flatMap { msg ->
+                                            //                                            messagesPublisher.onNext(msg)
                                             ServerResponse.ok().bodyValue(SuccessResponse("message sent!"))
                                         }
                                     }.switchIfEmpty {
@@ -107,4 +107,20 @@ class ChatroomHandler(
                     ServerResponse.status(404).bodyValue(ErrorResponse("User not found"))
                 }
     }
+
+    fun getGroupMessages(request: ServerRequest) =
+            Mono.zip(
+                    request.principalUser(userRepository),
+                    groupRepository.findById(request.pathVariable("groupId"))
+            )
+                    .flatMap { (user, group) ->
+                        groupMemberRepository.findByGroupAndMember(group, user.compact())
+                                .flatMap { _ ->
+                                    ServerResponse.ok().body(messageRepository.findAllByRoomId(group.chatroom.id), Message::class.java)
+                                }.switchIfEmpty {
+                                    "You are not a participant of this room".toForbiddenServerResponse()
+                                }
+                    }.switchIfEmpty {
+                        ServerResponse.status(404).bodyValue(ErrorResponse("Group not found"))
+                    }
 }
