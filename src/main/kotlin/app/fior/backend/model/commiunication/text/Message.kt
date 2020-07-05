@@ -1,5 +1,6 @@
 package app.fior.backend.model.commiunication.text
 
+import app.fior.backend.dto.MessageRequest
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
@@ -15,5 +16,12 @@ data class Message(
             roomId = roomId,
             message = message,
             senderId = senderId
+    )
+
+    constructor(roomId: String, request: MessageRequest) : this(
+            id = null,
+            roomId = roomId,
+            message = request.message,
+            senderId = request.senderId
     )
 }

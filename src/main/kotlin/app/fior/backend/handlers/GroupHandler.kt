@@ -29,7 +29,7 @@ class GroupHandler(
             request.principalUser(userRepository),
             request.bodyToMono(GroupCreateRequest::class.java)
     ).flatMap { (user, groupRequest) ->
-        chatroomRepository.save(Chatroom(groupRequest.name, false))
+        chatroomRepository.save(Chatroom(groupRequest.name, Chatroom.ChatroomType.GROUP))
                 .flatMap { chatroom ->
                     groupRepository.save(
                             Group(
@@ -50,6 +50,21 @@ class GroupHandler(
                         }
                     }
                 }
+    }
+
+    fun getGroup(request: ServerRequest) = Mono.zip(
+            request.principalUser(userRepository),
+            groupRepository.findById(request.pathVariable("groupId"))
+    ).flatMap { (user, group) ->
+        print(group)
+        groupMemberRepository.findByGroupAndMember(group, user.compact())
+                .flatMap {
+                    ServerResponse.ok().bodyValue(group)
+                }.switchIfEmpty {
+                    "you are not a member in the group".toForbiddenServerResponse()
+                }
+    }.switchIfEmpty {
+        "group not found".toNotFoundServerResponse()
     }
 
     fun groupsMe(request: ServerRequest) = request.principalUser(userRepository)
