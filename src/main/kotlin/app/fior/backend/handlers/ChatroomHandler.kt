@@ -67,12 +67,12 @@ class ChatroomHandler(
                             }
                         }
                         Chatroom.ChatroomType.GROUP -> {
-                            groupRepository.findByChatroom(chatroom.compact())
+                            groupRepository.findByChatroom(chatroom)
                                     .flatMap { group ->
                                         groupMemberRepository.findByGroupAndMember(group, user.compact())
                                     }.flatMap { _ ->
-                                        messageRepository.save(Message(request.pathVariable("roomId"), msgRequest, user.compact())).flatMap { msg ->
-                                            //                                            messagesPublisher.onNext(msg)
+                                        messageRepository.save(Message(request.pathVariable("roomId"), msgRequest)).flatMap { msg ->
+                                            messagesPublisher.onNext(msg)
                                             ServerResponse.ok().bodyValue(SuccessResponse("message sent!"))
                                         }
                                     }.switchIfEmpty {

@@ -25,4 +25,11 @@ data class Message(
             message = request.message,
             sender = sender
     )
+
+    constructor(roomId: String, request: MessageRequest) : this(
+            id = null,
+            roomId = roomId,
+            message = request.message,
+            senderId = request.senderId
+    )
 }

@@ -1044,6 +1044,7 @@ components:
       required:
         - name
         - description
+      description: Requst to create groups
     Group:
       title: Group
       type: object
