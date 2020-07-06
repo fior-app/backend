@@ -72,7 +72,7 @@ class ChatroomHandler(
                                         groupMemberRepository.findByGroupAndMember(group, user.compact())
                                     }.flatMap { _ ->
                                         messageRepository.save(Message(request.pathVariable("roomId"), msgRequest, user.compact())).flatMap { msg ->
-                                            //                                            messagesPublisher.onNext(msg)
+                                            messagesPublisher.onNext(msg)
                                             ServerResponse.ok().bodyValue(SuccessResponse("message sent!"))
                                         }
                                     }.switchIfEmpty {
