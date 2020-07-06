@@ -67,7 +67,7 @@ class ChatroomHandler(
                             }
                         }
                         Chatroom.ChatroomType.GROUP -> {
-                            groupRepository.findByChatroom(chatroom.compact())
+                            groupRepository.findByChatroom(chatroom)
                                     .flatMap { group ->
                                         groupMemberRepository.findByGroupAndMember(group, user.compact())
                                     }.flatMap { _ ->
@@ -83,7 +83,11 @@ class ChatroomHandler(
                             "Not support yet".toForbiddenServerResponse()
                         }
                     }
-                }.switchIfEmpty {
+                }.switchIfEmpty {​​
+id: "5f02a4642d5ce258667540d0"
+​​​​
+message: "zvx"
+​​​
                     "chatroom not found".toNotFoundServerResponse()
                 }
     }

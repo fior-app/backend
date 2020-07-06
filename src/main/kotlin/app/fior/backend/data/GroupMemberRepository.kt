@@ -15,5 +15,5 @@ interface GroupMemberRepository : ReactiveMongoRepository<GroupMember, String> {
 
     fun findByGroupAndMember(group: Group, member: UserCompact): Mono<GroupMember>
 
-    fun findByGroup(group: Group): Flux<GroupMember>
+  fun findByGroup(group: Group): Flux<GroupMember>
 }

@@ -8,5 +8,4 @@ import reactor.core.publisher.Mono
 interface GroupRepository : ReactiveMongoRepository<Group, String> {
 
     fun findByChatroom(chatroom: ChatroomCompact): Mono<Group>
-
 }
