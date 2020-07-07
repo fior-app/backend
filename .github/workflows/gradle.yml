@@ -23,4 +23,29 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew bootJar
+
+      # Azure CI
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - uses: azure/docker-login@v1
+      with:
+        login-server: fiorimages.azurecr.io
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - run: |
+        docker build -t fiorimages.azurecr.io/fior-backend .
+        docker push fiorimages.azurecr.io/fior-backend
+
+    - uses: azure/webapps-container-deploy@v1
+      with:
+        app-name: 'fior-backend'
+        images: 'fiorimages.azurecr.io/fior-backend'
+
+    - name: Azure logout
+      run: |
+        az logout

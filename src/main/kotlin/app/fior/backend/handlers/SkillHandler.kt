@@ -27,7 +27,7 @@ class SkillHandler(
 
     fun searchSkills(request: ServerRequest) = request.queryParam("q").toMono()
             .flatMap { query ->
-                if (query.isEmpty)
+                if (!query.isPresent)
                     return@flatMap "Search query not found".toBadRequestServerResponse()
 
                 ServerResponse.ok().body(
