@@ -16,7 +16,8 @@ class Router(
         private val questionHandler: QuestionHandler,
         private val skillHandler: SkillHandler,
         private val commentHandler: CommentHandler,
-        private val groupHandler: GroupHandler
+        private val groupHandler: GroupHandler,
+        private val postHandler: PostHandler
 ) {
 
     @Bean
@@ -61,6 +62,14 @@ class Router(
             PATCH("/{questionId}/answers/{answerId}") { questionHandler.updateAnswer(it) }
             DELETE("/{questionId}/answers/{answerId}") { questionHandler.deleteAnswer(it) }
             POST("/{questionId}/answers/{answerId}/correct") { questionHandler.setCorrectAnswer(it) }
+        }
+
+        "/posts".nest {
+            GET("/") { postHandler.getPosts(it) }
+            GET("/{postId}") { postHandler.getPost(it) }
+            POST("/") { postHandler.createPost(it) }
+            PATCH("/{postId}") { postHandler.updatePost(it) }
+            DELETE("/{postId}") { postHandler.deletePost(it) }
         }
 
         "/comments".nest {

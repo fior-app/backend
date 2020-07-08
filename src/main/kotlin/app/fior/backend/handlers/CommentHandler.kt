@@ -1,6 +1,7 @@
 package app.fior.backend.handlers
 
 import app.fior.backend.data.AnswerRepository
+import app.fior.backend.data.PostRepository
 import app.fior.backend.data.QuestionRepository
 import app.fior.backend.data.UserRepository
 import app.fior.backend.dto.CommentCreateRequest
@@ -19,6 +20,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 class CommentHandler(
         private val questionRepository: QuestionRepository,
         private val answerRepository: AnswerRepository,
+        private val postRepository: PostRepository,
         private val userRepository: UserRepository
 ) {
 
@@ -52,6 +54,21 @@ class CommentHandler(
                     }
                 }.switchIfEmpty {
                     "Answer not found".toNotFoundServerResponse()
+                }
+        "post" -> postRepository.findById(request.queryParamOrNull("resource_id") ?: "")
+                .flatMap { post ->
+                    Mono.zip(
+                            request.principalUser(userRepository),
+                            request.bodyToMono(CommentCreateRequest::class.java)
+                    ).flatMap { (user, comment) ->
+                        postRepository.save(
+                                post.withNewComment(Comment(comment, user.compact()))
+                        ).flatMap {
+                            "Comment created successfully".toSuccessServerResponse()
+                        }
+                    }
+                }.switchIfEmpty {
+                    "Question not found".toNotFoundServerResponse()
                 }
         else -> "Invalid resource type".toBadRequestServerResponse()
     }
@@ -101,6 +118,28 @@ class CommentHandler(
                 }.switchIfEmpty {
                     "Comment not found".toNotFoundServerResponse()
                 }
+        "post" -> postRepository.findById(request.queryParamOrNull("resource_id") ?: "")
+                .flatMap { post ->
+                    val comment = post.comments
+                            .find { it.id == request.pathVariable("commentId") }
+                            ?: return@flatMap Mono.empty<ServerResponse>()
+
+                    request.principalUser(userRepository).flatMap principal@{ user ->
+                        if (comment.createdBy.id != user.id)
+                            return@principal "Unauthorized".toUnauthorizedServerResponse()
+
+                        request.bodyToMono(CommentUpdateRequest::class.java)
+                                .flatMap { newComment ->
+                                    postRepository.save(
+                                            post.withUpdatedComment(comment, comment.updated(newComment))
+                                    ).flatMap {
+                                        "Comment updated successfully".toSuccessServerResponse()
+                                    }
+                                }
+                    }
+                }.switchIfEmpty {
+                    "Comment not found".toNotFoundServerResponse()
+                }
         else -> "Invalid resource type".toBadRequestServerResponse()
     }
 
@@ -137,6 +176,25 @@ class CommentHandler(
 
                         answerRepository.save(
                                 answer.withDeletedComment(comment)
+                        ).flatMap {
+                            "Comment Deleted successfully".toSuccessServerResponse()
+                        }
+                    }
+                }.switchIfEmpty {
+                    "Comment not found".toNotFoundServerResponse()
+                }
+        "post" -> postRepository.findById(request.queryParamOrNull("resource_id") ?: "")
+                .flatMap { post ->
+                    val comment = post.comments
+                            .find { it.id == request.pathVariable("commentId") }
+                            ?: return@flatMap Mono.empty<ServerResponse>()
+
+                    request.principalUser(userRepository).flatMap principal@{ user ->
+                        if (comment.createdBy.id != user.id)
+                            return@principal "Unauthorized".toUnauthorizedServerResponse()
+
+                        postRepository.save(
+                                post.withDeletedComment(comment)
                         ).flatMap {
                             "Comment Deleted successfully".toSuccessServerResponse()
                         }

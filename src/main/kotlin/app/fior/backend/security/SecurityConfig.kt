@@ -36,6 +36,7 @@ class SecurityConfig(
                 .authorizeExchange()
                 .pathMatchers(*patterns).permitAll()
                 .pathMatchers(HttpMethod.GET, "/questions/**").permitAll()
+                .pathMatchers(HttpMethod.GET, "/posts/**").permitAll()
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
                 .anyExchange().authenticated()
                 .and()
