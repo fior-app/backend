@@ -482,6 +482,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/PrivateChatRoomRequest'
+      tags:
+        - Chatroom
   '/chatrooms/{roomId}/send':
     post:
       summary: ''
@@ -511,6 +513,8 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MessageRequest'
+      tags:
+        - Chatroom
     parameters:
       - schema:
           type: string
@@ -536,7 +540,7 @@ paths:
                 $ref: '#/components/schemas/Message'
       operationId: getMessages
       description: Stream of messages for realtime messaging
-  '/chatroom/{roomId}':
+  '/chatrooms/{roomId}':
     parameters:
       - schema:
           type: string
@@ -565,17 +569,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        '':
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {}
       operationId: getPrivateMessages
       description: Get Private Messages of a stream
-  /groups/:
+  /groups:
     post:
-      summary: ''
+      summary: createGroup
+      tags:
+        - Group
       operationId: createGroup
       responses:
         '200':
@@ -592,7 +592,7 @@ paths:
               $ref: '#/components/schemas/GroupCreateRequest'
   /groups/me:
     get:
-      summary: Your GET endpoint
+      summary: getMyGroupsAccepted
       tags: []
       responses:
         '200':
@@ -605,9 +605,9 @@ paths:
                   $ref: '#/components/schemas/GroupMember'
       operationId: myGroups
       description: Get my groups that accepted to participate
-  /group/me/all:
+  /groups/me/all:
     get:
-      summary: Your GET endpoint
+      summary: getMyGroups
       tags: []
       responses:
         '200':
@@ -620,9 +620,10 @@ paths:
                   $ref: '#/components/schemas/GroupMember'
       operationId: myGroupsAll
       description: get my all groups
+    parameters: []
   /groups/me/requests:
     get:
-      summary: Your GET endpoint
+      summary: getMyGroupsRequests
       tags: []
       responses:
         '200':
@@ -637,7 +638,9 @@ paths:
       description: Get all requests to me from groups
   '/groups/{groupId}/member':
     post:
-      summary: ''
+      summary: addGroupMember
+      tags:
+        - Group
       operationId: newMemberRequestGroup
       responses:
         '200':
@@ -679,6 +682,8 @@ paths:
   '/groups/{groupId}/member/leave':
     post:
       summary: ''
+      tags:
+        - Group
       operationId: leaveGroup
       responses:
         '200':
@@ -709,6 +714,8 @@ paths:
   '/groups/{groupId}/member/state':
     post:
       summary: ''
+      tags:
+        - Group
       operationId: changeGroupState
       responses:
         '200':
@@ -955,12 +962,25 @@ components:
           type: number
         createdBy:
           $ref: '#/components/schemas/UserCompact'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        createdAt:
+          type: string
+          format: date-time
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkillCompact'
       required:
         - id
         - title
         - description
         - votes
         - createdBy
+        - comments
+        - createdAt
     UserCompact:
       title: UserCompact
       type: object
@@ -1044,7 +1064,6 @@ components:
       required:
         - name
         - description
-      description: Requst to create groups
     Group:
       title: Group
       type: object
@@ -1158,6 +1177,99 @@ components:
       required:
         - senderId
       description: Message request to send a message
+    Comment:
+      title: Comment
+      type: object
+      x-tags:
+        - Model
+      description: Model containing comment data
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+        votes:
+          type: number
+          minimum: 0
+        createdBy:
+          $ref: '#/components/schemas/UserCompact'
+        createdAt:
+          format: date-time
+          type: string
+      required:
+        - id
+        - message
+        - votes
+        - createdAt
+    Post:
+      title: Post
+      type: object
+      x-tags:
+        - Model
+      description: Model with post data
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        text:
+          type: string
+        votes:
+          type: integer
+          minimum: 0
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/SkillCompact'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Comment'
+        createdBy:
+          $ref: '#/components/schemas/UserCompact'
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - text
+        - votes
+        - skills
+        - comments
+        - createdBy
+        - createdAt
+    Skill:
+      title: Skill
+      type: object
+      x-tags:
+        - Model
+      description: Model with skill data
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        canVerify:
+          type: boolean
+      required:
+        - id
+        - name
+        - canVerify
+    SkillCompact:
+      title: SkillCompact
+      type: object
+      x-tags:
+        - Model
+      description: Compact model with skill data
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name
   securitySchemes:
     token:
       type: http
@@ -1170,5 +1282,9 @@ tags:
     description: Endpoints related to users
   - name: Question
     description: Endpoints related to questions
+  - name: Group
+    description: Endpoints related to groups
+  - name: Chatroom
+    description: Endpoints related to chatrooms
   - name: Models
     description: Models of the API
