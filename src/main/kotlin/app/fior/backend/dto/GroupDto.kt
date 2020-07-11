@@ -14,7 +14,7 @@ data class GroupUpdateRequest(
 )
 
 data class MemberAddRequest(
-        val memberId: String
+        val email: String
 )
 
 data class GroupStateChangeRequest(

@@ -30,10 +30,14 @@ data class User(
     )
 
     fun compact() = UserCompact(id!!, name, email)
+
+    companion object {
+        fun userWithEmail(email: String) = UserCompact("", "", email)
+    }
 }
 
 data class UserCompact(
-        @Id val id: String,
+        @Id val id: String?,
         val name: String,
         val email: String
 )
