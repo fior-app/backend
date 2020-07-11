@@ -32,7 +32,8 @@ data class FiorConfiguration(
     ) {
         data class SendGridTemplateConfiguration(
                 val forgotPassword: String,
-                val emailConfirmation: String
+                val emailConfirmation: String,
+                val groupInvitation: String
         )
     }
 }

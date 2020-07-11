@@ -10,7 +10,10 @@ import app.fior.backend.dto.MemberAddRequest
 import app.fior.backend.extensions.*
 import app.fior.backend.model.Group
 import app.fior.backend.model.GroupMember
+import app.fior.backend.model.User
 import app.fior.backend.model.commiunication.Chatroom
+import app.fior.backend.services.EmailService
+import app.fior.backend.services.TokenService
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -22,7 +25,9 @@ class GroupHandler(
         private val userRepository: UserRepository,
         private val groupRepository: GroupRepository,
         private val groupMemberRepository: GroupMemberRepository,
-        private val chatroomRepository: ChatroomRepository
+        private val chatroomRepository: ChatroomRepository,
+        private val emailService: EmailService,
+        private val tokenService: TokenService
 ) {
 
     fun createGroup(request: ServerRequest) = Mono.zip(
@@ -58,8 +63,8 @@ class GroupHandler(
             groupRepository.findById(request.pathVariable("groupId"))
     ).flatMap { (user, group) ->
         groupMemberRepository.findByGroupAndMember(group, user.compact())
-                .flatMap {
-                    ServerResponse.ok().bodyValue(group)
+                .flatMap { groupMember ->
+                    ServerResponse.ok().bodyValue(groupMember)
                 }.switchIfEmpty {
                     "you are not a member in the group".toForbiddenServerResponse()
                 }
@@ -74,7 +79,7 @@ class GroupHandler(
         groupMemberRepository.findByGroupAndMember(group, user.compact())
                 .flatMap {
                     ServerResponse.ok().body(
-                            groupMemberRepository.findByGroup(group)
+                            groupMemberRepository.findByGroupAndState(group, GroupMember.GroupMemberState.OK)
                                     .skip(request.queryParam("skip").orElse("0").toLong())
                                     .take(request.queryParam("limit").orElse("25").toLong()),
                             GroupMember::class.java
@@ -110,9 +115,14 @@ class GroupHandler(
     fun groupsMeRequests(request: ServerRequest) = request.principalUser(userRepository)
             .flatMap { user ->
                 ServerResponse.ok().body(
-                        groupMemberRepository.findAllByMemberAndState(user.compact(), GroupMember.GroupMemberState.CONFIRM)
+                        groupMemberRepository.findAllByMemberEmailAndState(user.email, GroupMember.GroupMemberState.CONFIRM)
                                 .skip(request.queryParam("skip").orElse("0").toLong())
-                                .take(request.queryParam("limit").orElse("25").toLong()),
+                                .take(request.queryParam("limit").orElse("25").toLong())
+                                .map {
+                                    it.apply {
+                                        member = user.compact()
+                                    }
+                                },
                         GroupMember::class.java
                 )
             }
@@ -122,29 +132,59 @@ class GroupHandler(
             request.principalUser(userRepository),
             groupRepository.findById(request.pathVariable("groupId"))
     ).flatMap { (memberAddRequest, user, group) ->
-        Mono.zip(
-                groupMemberRepository.findByGroupAndMember(group, user.compact()),
-                userRepository.findById(memberAddRequest.memberId)
-        ).flatMap member@{ (userMember, member) ->
-            if (!userMember.hasPermission(GroupMember.Permission.SEND_MEMBER_REQUESTS))
-                return@member "Unauthorized to send requests".toUnauthorizedServerResponse()
-            groupMemberRepository.findByGroupAndMember(group, member.compact())
-                    .flatMap { _ ->
-                        "User is already a member".toForbiddenServerResponse()
-                    }.switchIfEmpty {
-                        groupMemberRepository.save(
-                                GroupMember(
-                                        group,
-                                        member.compact(),
-                                        GroupMember.GroupMemberState.CONFIRM
-                                )
-                        ).flatMap {
-                            "User requested to group".toSuccessServerResponse()
-                        }
-                    }
-        }.switchIfEmpty {
-            "User or group not found".toNotFoundServerResponse()
-        }
+        groupMemberRepository.findByGroupAndMember(group, user.compact())
+                .flatMap userMember@{ userMember ->
+                    if (!userMember.hasPermission(GroupMember.Permission.SEND_MEMBER_REQUESTS))
+                        return@userMember "Unauthorized to send requests".toUnauthorizedServerResponse()
+                    userRepository.findByEmail(memberAddRequest.email)
+                            .flatMap { member ->
+                                groupMemberRepository.findByGroupAndMember(group, member.compact())
+                                        .flatMap { _ ->
+                                            "User is already a member".toForbiddenServerResponse()
+                                        }.switchIfEmpty {
+                                            Mono.zip(
+                                                    groupMemberRepository.save(
+                                                            GroupMember(
+                                                                    group,
+                                                                    member.compact(),
+                                                                    GroupMember.GroupMemberState.CONFIRM
+                                                            )
+
+                                                    ),
+                                                    emailService.sendGroupInvitation(
+                                                            memberAddRequest.email,
+                                                            tokenService.groupRequestToken(member))
+                                            ).flatMap {
+                                                "User requested to group".toSuccessServerResponse()
+                                            }
+                                        }
+                            }.switchIfEmpty {
+                                groupMemberRepository.findByGroupAndMember_Email(group, memberAddRequest.email)
+                                        .flatMap { _ ->
+                                            "User is already a member".toForbiddenServerResponse()
+                                        }.switchIfEmpty {
+                                            Mono.zip(
+                                                    groupMemberRepository.save(
+                                                            GroupMember(
+                                                                    group,
+                                                                    User.userWithEmail(memberAddRequest.email),
+                                                                    GroupMember.GroupMemberState.CONFIRM
+                                                            )
+
+                                                    ),
+                                                    emailService.sendGroupInvitation(
+                                                            memberAddRequest.email,
+                                                            tokenService.groupRequestToken(memberAddRequest.email))
+                                            ).flatMap {
+                                                "User requested to group".toSuccessServerResponse()
+                                            }
+                                        }
+                            }
+                }.switchIfEmpty {
+                    "User is not a member in group".toForbiddenServerResponse()
+                }
+    }.switchIfEmpty {
+        "User or group not found".toNotFoundServerResponse()
     }
 
     fun leaveGroup(request: ServerRequest) = Mono.zip(
@@ -172,9 +212,12 @@ class GroupHandler(
             request.bodyToMono(GroupStateChangeRequest::class.java),
             groupRepository.findById(request.pathVariable("roomId"))
     ).flatMap { (user, stateChangeRequest, group) ->
-        groupMemberRepository.findByGroupAndMember(group, user.compact())
+        groupMemberRepository.findByGroupAndMember_Email(group, user.email)
                 .flatMap { groupMember ->
-                    groupMember.state = stateChangeRequest.state
+                    groupMember.apply {
+                        state = stateChangeRequest.state
+                        member = user.compact()
+                    }
                     if (stateChangeRequest.state == GroupMember.GroupMemberState.CONFIRM) {
                         groupRepository.save(group.plusMember())
                     }

@@ -16,7 +16,8 @@ class EmailService(
         @Value("\${fior.sendgrid.api-key}") private val apiKey: String,
         @Value("\${fior.sendgrid.sender}") private val sender: String,
         @Value("\${fior.sendgrid.templates.email-confirmation}") private val forgotPasswordTemplate: String,
-        @Value("\${fior.sendgrid.templates.forgot-password}") private val emailConfirmationTemplate: String
+        @Value("\${fior.sendgrid.templates.forgot-password}") private val emailConfirmationTemplate: String,
+        @Value("\${fior.sendgrid.templates.group-invitation}") private val groupInvitationTemplate: String
 ) {
 
     fun sendEmailConfirmation(email: String, token: String): Mono<Int> {
@@ -33,6 +34,14 @@ class EmailService(
         personalization.addTo(Email(email))
 
         return sendMail(forgotPasswordTemplate, personalization)
+    }
+
+    fun sendGroupInvitation(email: String, token: String): Mono<Int> {
+        val personalization = Personalization()
+        personalization.addDynamicTemplateData("link", "http://localhost:3000/groups/invitation/${token}")
+        personalization.addTo(Email(email))
+
+        return sendMail(groupInvitationTemplate, personalization)
     }
 
     private fun sendMail(templateId: String, personalization: Personalization): Mono<Int> {

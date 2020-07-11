@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 data class GroupMember(
         @Id val id: String? = null,
         val group: Group,
-        val member: UserCompact,
+        var member: UserCompact,
         var state: GroupMemberState,
         val permissions: Set<Permission>
 ) {
