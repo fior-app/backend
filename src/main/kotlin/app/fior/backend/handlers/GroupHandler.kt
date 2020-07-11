@@ -210,7 +210,7 @@ class GroupHandler(
     fun changeGroupState(request: ServerRequest) = Mono.zip(
             request.principalUser(userRepository),
             request.bodyToMono(GroupStateChangeRequest::class.java),
-            groupRepository.findById(request.pathVariable("roomId"))
+            groupRepository.findById(request.pathVariable("groupId"))
     ).flatMap { (user, stateChangeRequest, group) ->
         groupMemberRepository.findByGroupAndMember_Email(group, user.email)
                 .flatMap { groupMember ->
