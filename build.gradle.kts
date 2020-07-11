@@ -38,6 +38,9 @@ dependencies {
     // Email
     implementation("com.sendgrid:sendgrid-java:4.4.8")
 
+    // File storage
+    implementation("com.azure:azure-storage-blob:12.8.0-beta.1")
+
     // Doc
     val springDocVersion = "1.3.9"
     implementation("org.springdoc:springdoc-openapi-webflux-ui:$springDocVersion")

@@ -5,22 +5,26 @@ import app.fior.backend.dto.*
 import app.fior.backend.extensions.toBadRequestServerResponse
 import app.fior.backend.extensions.toSuccessServerResponse
 import app.fior.backend.extensions.toUnauthorizedServerResponse
+import app.fior.backend.services.BlobService
 import app.fior.backend.services.EmailService
 import app.fior.backend.services.TokenService
 import io.jsonwebtoken.Claims
-import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component
+import org.springframework.util.Base64Utils
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
+import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import java.util.*
 
 @Component
 class UsersHandler(
         private val userRepository: UserRepository,
         private val emailService: EmailService,
         private val tokenService: TokenService,
-        private val passwordEncoder: BCryptPasswordEncoder
+        private val passwordEncoder: BCryptPasswordEncoder,
+        private val blobService: BlobService
 ) {
 
     fun getMe(request: ServerRequest) = request.principal().flatMap { principal ->
@@ -105,6 +109,23 @@ class UsersHandler(
 
                 userRepository.save(updatedUser).flatMap {
                     "Password changed successfully".toSuccessServerResponse()
+                }
+            }.switchIfEmpty {
+                "User not found".toUnauthorizedServerResponse()
+            }
+        }
+    }
+
+    fun uploadProfilePicture(request: ServerRequest) = request.principal().flatMap { principal ->
+        request.bodyToMono(FileUploadDto::class.java).flatMap { fileUpload ->
+            userRepository.findByEmail(principal.name).flatMap { user ->
+                val data = Base64Utils.decodeFromString(fileUpload.data)
+                val filename = "${UUID.randomUUID()}.${fileUpload.ext}"
+
+                blobService.uploadBlob(filename, data).flatMap {
+                    userRepository.save(user.copy(profilePicture = it))
+                }.flatMap {
+                    "Profile picture uploaded successfully".toSuccessServerResponse()
                 }
             }.switchIfEmpty {
                 "User not found".toUnauthorizedServerResponse()

@@ -8,7 +8,8 @@ import org.springframework.boot.context.properties.ConstructorBinding
 data class FiorConfiguration(
         val auth: AuthConfiguration,
         val token: TokenConfiguration,
-        val sendgrid: SendGridConfiguration
+        val sendgrid: SendGridConfiguration,
+        val storage: StorageConfiguration
 ) {
     data class AuthConfiguration(
             val googleClientId: String
@@ -36,4 +37,13 @@ data class FiorConfiguration(
                 val groupInvitation: String
         )
     }
+
+    data class StorageConfiguration(
+            val accountName: String,
+            val accountKey: String,
+            val useEmulatorval: Boolean = false,
+            val emulatorBlobHost: String?,
+            val containerName: String,
+            val enableHttps: Boolean = false
+    )
 }

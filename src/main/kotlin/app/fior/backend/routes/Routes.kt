@@ -41,6 +41,7 @@ class Router(
                 POST("/changePassword") { usersHandler.changePassword(it) }
                 GET("/") { usersHandler.getMe(it) }
                 PUT("/") { usersHandler.updateMe(it) }
+                POST("/uploadProfilePicture") { usersHandler.uploadProfilePicture(it) }
             }
         }
 

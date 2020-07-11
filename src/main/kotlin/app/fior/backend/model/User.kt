@@ -12,6 +12,7 @@ data class User(
         val name: String,
         val email: String,
         val emailValid: Boolean = false,
+        val profilePicture: String? = null,
         @JsonIgnore val password: String?,
         val hasPassword: Boolean
 ) {
