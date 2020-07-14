@@ -122,9 +122,13 @@ class UsersHandler(
                 val data = Base64Utils.decodeFromString(fileUpload.data)
                 val filename = "${UUID.randomUUID()}.${fileUpload.ext}"
 
-                blobService.uploadBlob(filename, data).flatMap {
-                    userRepository.save(user.copy(profilePicture = it))
-                }.flatMap {
+                Mono.zip(
+                        blobService.deleteBlob((user.profilePicture ?: "").split("/").last())
+                                .onErrorReturn(false),
+                        blobService.uploadBlob(filename, data).flatMap {
+                            userRepository.save(user.copy(profilePicture = it))
+                        }
+                ).flatMap {
                     "Profile picture uploaded successfully".toSuccessServerResponse()
                 }
             }.switchIfEmpty {

@@ -18,4 +18,9 @@ class BlobService(val blobContainerAsyncClient: BlobContainerAsyncClient) {
         }
     }
 
+    fun deleteBlob(blobName: String): Mono<Boolean> {
+        val blobAsyncClient = blobContainerAsyncClient.getBlobAsyncClient(blobName)
+        return blobAsyncClient.delete().thenReturn(true)
+    }
+
 }
