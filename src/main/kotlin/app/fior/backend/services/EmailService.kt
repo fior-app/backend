@@ -1,5 +1,6 @@
 package app.fior.backend.services
 
+import app.fior.backend.dto.ForgotPasswordRequest
 import com.sendgrid.Method
 import com.sendgrid.Request
 import com.sendgrid.Response
@@ -15,8 +16,8 @@ import reactor.core.publisher.Mono
 class EmailService(
         @Value("\${fior.sendgrid.api-key}") private val apiKey: String,
         @Value("\${fior.sendgrid.sender}") private val sender: String,
-        @Value("\${fior.sendgrid.templates.email-confirmation}") private val forgotPasswordTemplate: String,
-        @Value("\${fior.sendgrid.templates.forgot-password}") private val emailConfirmationTemplate: String,
+        @Value("\${fior.sendgrid.templates.email-confirmation}") private val emailConfirmationTemplate: String,
+        @Value("\${fior.sendgrid.templates.forgot-password}") private val forgotPasswordTemplate: String,
         @Value("\${fior.sendgrid.templates.group-invitation}") private val groupInvitationTemplate: String
 ) {
 
