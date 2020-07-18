@@ -1,6 +1,7 @@
 package app.fior.backend.model
 
 import app.fior.backend.dto.SignUpRequest
+import app.fior.backend.services.LinkedInService
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
 import org.springframework.data.annotation.Id
@@ -13,8 +14,9 @@ data class User(
         val email: String,
         val emailValid: Boolean = false,
         val profilePicture: String? = null,
-        @JsonIgnore val password: String?,
-        val hasPassword: Boolean
+        @JsonIgnore val password: String? = null,
+        val hasPassword: Boolean = false,
+        @JsonIgnore val linkedInToken: Token? = null
 ) {
     constructor(signUpRequest: SignUpRequest) : this(
             name = signUpRequest.name,
@@ -25,9 +27,13 @@ data class User(
 
     constructor(payload: GoogleIdToken.Payload) : this(
             name = payload["name"] as String,
-            email = payload.email,
-            hasPassword = false,
-            password = null
+            email = payload.email
+    )
+
+    constructor(token: LinkedInService.LinkedInToken, person: LinkedInService.LinkedInPerson) : this(
+            name = "${person.firstName} ${person.lastName}",
+            email = person.email,
+            linkedInToken = token
     )
 
     fun compact() = UserCompact(id!!, name, email)

@@ -15,6 +15,11 @@ data class SignInGoogleRequest(
         val idToken: String
 )
 
+data class SignInLinkedInRequest(
+        val code: String,
+        val requestUri: String
+)
+
 data class SignInResponse(
         val token: String
 )

@@ -12,7 +12,9 @@ data class FiorConfiguration(
         val storage: StorageConfiguration
 ) {
     data class AuthConfiguration(
-            val googleClientId: String
+            val googleClientId: String,
+            val linkedinClientId: String,
+            val linkedinClientSecret: String
     )
 
     data class TokenConfiguration(

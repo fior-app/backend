@@ -5,6 +5,7 @@ import app.fior.backend.dto.*
 import app.fior.backend.model.User
 import app.fior.backend.services.EmailService
 import app.fior.backend.services.GoogleAuthService
+import app.fior.backend.services.LinkedInService
 import app.fior.backend.services.TokenService
 import io.jsonwebtoken.Claims
 import org.springframework.http.HttpStatus
@@ -21,7 +22,8 @@ class AuthHandler(
         private val passwordEncoder: BCryptPasswordEncoder,
         private val emailService: EmailService,
         private val tokenService: TokenService,
-        private val googleAuthService: GoogleAuthService
+        private val googleAuthService: GoogleAuthService,
+        private val linkedInService: LinkedInService
 ) {
 
     fun signUp(signUpRequest: ServerRequest) = signUpRequest.bodyToMono(SignUpRequest::class.java).map { request ->
@@ -50,8 +52,8 @@ class AuthHandler(
                 }
     }
 
-    fun signInGoogle(request: ServerRequest) = request.bodyToMono(SignInGoogleRequest::class.java).flatMap { googleSignInRequest ->
-        googleAuthService.verifyIdToken(googleSignInRequest.idToken)
+    fun signInGoogle(request: ServerRequest) = request.bodyToMono(SignInGoogleRequest::class.java).flatMap { signInRequest ->
+        googleAuthService.verifyIdToken(signInRequest.idToken)
     }.flatMap { payload ->
         userRepository.findByEmail(payload.email).flatMap {
             ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(it)))
@@ -62,6 +64,20 @@ class AuthHandler(
         }
     }.switchIfEmpty {
         ServerResponse.status(HttpStatus.UNAUTHORIZED).bodyValue(ErrorResponse("Invalid id token"))
+    }
+
+    fun signInLinkedIn(request: ServerRequest) = request.bodyToMono(SignInLinkedInRequest::class.java).flatMap { signInRequest ->
+        linkedInService.getAccessToken(signInRequest.code, signInRequest.requestUri)
+    }.flatMap { tokenResponse ->
+        linkedInService.getMe(tokenResponse.accessToken).flatMap { person ->
+            userRepository.findByEmail(person.email).flatMap {
+                ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(it)))
+            }.switchIfEmpty {
+                userRepository.save(User(tokenResponse, person)).flatMap {
+                    ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(it)))
+                }
+            }
+        }
     }
 
     fun forgotPassword(request: ServerRequest) = request.bodyToMono(ForgotPasswordRequest::class.java).flatMap { req ->

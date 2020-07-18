@@ -28,6 +28,7 @@ class Router(
             "/signin".nest {
                 POST("/email") { authHandler.signInEmail(it) }
                 POST("/google") { authHandler.signInGoogle(it) }
+                POST("/linkedin") { authHandler.signInLinkedIn(it) }
             }
             POST("/forgotPassword") { authHandler.forgotPassword(it) }
             GET("/resetPassword") { authHandler.checkResetPassword(it) }
