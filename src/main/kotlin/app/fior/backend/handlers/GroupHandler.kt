@@ -1,15 +1,13 @@
 package app.fior.backend.handlers
 
-import app.fior.backend.data.ChatroomRepository
-import app.fior.backend.data.GroupMemberRepository
-import app.fior.backend.data.GroupRepository
-import app.fior.backend.data.UserRepository
+import app.fior.backend.data.*
 import app.fior.backend.dto.GroupCreateRequest
 import app.fior.backend.dto.GroupStateChangeRequest
 import app.fior.backend.dto.MemberAddRequest
 import app.fior.backend.extensions.*
 import app.fior.backend.model.Group
 import app.fior.backend.model.GroupMember
+import app.fior.backend.model.Project
 import app.fior.backend.model.User
 import app.fior.backend.model.commiunication.Chatroom
 import app.fior.backend.services.EmailService
@@ -26,6 +24,7 @@ class GroupHandler(
         private val groupRepository: GroupRepository,
         private val groupMemberRepository: GroupMemberRepository,
         private val chatroomRepository: ChatroomRepository,
+        private val projectRepository: ProjectRepository,
         private val emailService: EmailService,
         private val tokenService: TokenService
 ) {
@@ -34,23 +33,29 @@ class GroupHandler(
             request.principalUser(userRepository),
             request.bodyToMono(GroupCreateRequest::class.java)
     ).flatMap { (user, groupRequest) ->
-        chatroomRepository.save(Chatroom(groupRequest.name, Chatroom.ChatroomType.GROUP))
+        chatroomRepository.save(Chatroom(groupRequest.group.name, Chatroom.ChatroomType.GROUP))
                 .flatMap { chatroom ->
                     groupRepository.save(
                             Group(
-                                    groupRequest.name,
-                                    groupRequest.description,
-                                    groupRequest.icon,
+                                    groupRequest.group,
                                     user.compact(),
                                     chatroom.compact()
                             )
                     ).flatMap { group ->
-                        groupMemberRepository.save(
-                                GroupMember(
-                                        group,
-                                        user.compact(),
-                                        GroupMember.GroupMemberState.OK
-                                ).withAllPermissions()
+                        Mono.zip(
+                                groupMemberRepository.save(
+                                        GroupMember(
+                                                group,
+                                                user.compact(),
+                                                GroupMember.GroupMemberState.OK
+                                        ).withAllPermissions()
+                                ),
+                                projectRepository.save(
+                                        Project(
+                                                groupRequest.project,
+                                                group.id!!
+                                        )
+                                )
                         ).flatMap {
                             "Group Created Successfully".toSuccessServerResponse()
                         }
