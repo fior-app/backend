@@ -2,6 +2,8 @@ package app.fior.backend.handlers
 
 import app.fior.backend.data.UserRepository
 import app.fior.backend.dto.*
+import app.fior.backend.extensions.toBadRequestServerResponse
+import app.fior.backend.extensions.toSuccessServerResponse
 import app.fior.backend.model.User
 import app.fior.backend.services.EmailService
 import app.fior.backend.services.GoogleAuthService
@@ -69,16 +71,21 @@ class AuthHandler(
     fun signInLinkedIn(request: ServerRequest) = request.bodyToMono(SignInLinkedInRequest::class.java).flatMap { signInRequest ->
         linkedInService.getAccessToken(signInRequest.code, signInRequest.requestUri)
     }.flatMap { tokenResponse ->
-        linkedInService.getMe(tokenResponse.accessToken).flatMap { person ->
-            userRepository.findByEmail(person.email).flatMap {
-                ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(it)))
+        Mono.zip(
+                linkedInService.getMe(tokenResponse.accessToken),
+                linkedInService.getMyEmail(tokenResponse.accessToken)
+        ).flatMap { response ->
+            userRepository.findByEmail(response.t2).flatMap { oldUser ->
+                userRepository.save(oldUser.copy(linkedInToken = tokenResponse)).flatMap {
+                    ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(it)))
+                }
             }.switchIfEmpty {
-                userRepository.save(User(tokenResponse, person)).flatMap {
+                userRepository.save(User(tokenResponse, response.t1)).flatMap {
                     ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(it)))
                 }
             }
         }
-    }
+    }.switchIfEmpty { "Unable to retrieve access token".toBadRequestServerResponse() }
 
     fun forgotPassword(request: ServerRequest) = request.bodyToMono(ForgotPasswordRequest::class.java).flatMap { req ->
         userRepository.findByEmail(req.email)

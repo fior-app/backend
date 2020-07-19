@@ -30,9 +30,9 @@ data class User(
             email = payload.email
     )
 
-    constructor(token: LinkedInService.LinkedInToken, person: LinkedInService.LinkedInPerson) : this(
+    constructor(token: Token, person: LinkedInService.LinkedInPerson) : this(
             name = "${person.firstName} ${person.lastName}",
-            email = person.email,
+            email = person.emailAddress ?: "",
             linkedInToken = token
     )
 
