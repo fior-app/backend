@@ -15,6 +15,7 @@ class Router(
         private val chatroomHandler: ChatroomHandler,
         private val questionHandler: QuestionHandler,
         private val skillHandler: SkillHandler,
+        private val userSkillHandler: UserSkillHandler,
         private val commentHandler: CommentHandler,
         private val groupHandler: GroupHandler,
         private val postHandler: PostHandler
@@ -85,6 +86,12 @@ class Router(
             GET("/search") { skillHandler.searchSkills(it) }
             POST("/") { skillHandler.createSkill(it) }
             DELETE("/{id}") { skillHandler.deleteSkill(it) }
+        }
+
+        "/userskills".nest {
+            GET("/") { userSkillHandler.getUserSkills(it) }
+            POST("/") { userSkillHandler.addSkill(it) }
+            DELETE("/{id}") { userSkillHandler.removeSkill(it) }
         }
 
         "groups".nest {

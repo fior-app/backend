@@ -3,7 +3,8 @@ package app.fior.backend.handlers
 import app.fior.backend.data.UserRepository
 import app.fior.backend.dto.*
 import app.fior.backend.extensions.toBadRequestServerResponse
-import app.fior.backend.extensions.toSuccessServerResponse
+import app.fior.backend.extensions.component1
+import app.fior.backend.extensions.component2
 import app.fior.backend.model.User
 import app.fior.backend.services.EmailService
 import app.fior.backend.services.GoogleAuthService
@@ -74,13 +75,13 @@ class AuthHandler(
         Mono.zip(
                 linkedInService.getMe(tokenResponse.accessToken),
                 linkedInService.getMyEmail(tokenResponse.accessToken)
-        ).flatMap { response ->
-            userRepository.findByEmail(response.t2).flatMap { oldUser ->
-                userRepository.save(oldUser.copy(linkedInToken = tokenResponse)).flatMap {
+        ).flatMap { (accessToken, email) ->
+            userRepository.findByEmail(email).flatMap { oldUser ->
+                userRepository.save(oldUser.copy(linkedInToken = tokenResponse, linkedIn = true)).flatMap {
                     ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(it)))
                 }
             }.switchIfEmpty {
-                userRepository.save(User(tokenResponse, response.t1)).flatMap {
+                userRepository.save(User(tokenResponse, accessToken)).flatMap {
                     ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(it)))
                 }
             }

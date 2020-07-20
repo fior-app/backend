@@ -16,6 +16,7 @@ data class User(
         val profilePicture: String? = null,
         @JsonIgnore val password: String? = null,
         val hasPassword: Boolean = false,
+        val linkedIn: Boolean = false,
         @JsonIgnore val linkedInToken: Token? = null
 ) {
     constructor(signUpRequest: SignUpRequest) : this(
@@ -33,7 +34,8 @@ data class User(
     constructor(token: Token, person: LinkedInService.LinkedInPerson) : this(
             name = "${person.firstName} ${person.lastName}",
             email = person.emailAddress ?: "",
-            linkedInToken = token
+            linkedInToken = token,
+            linkedIn = true
     )
 
     fun compact() = UserCompact(id!!, name, email)
