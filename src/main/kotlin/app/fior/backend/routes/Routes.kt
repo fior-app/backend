@@ -85,13 +85,17 @@ class Router(
             GET("/") { skillHandler.getSkills(it) }
             GET("/search") { skillHandler.searchSkills(it) }
             POST("/") { skillHandler.createSkill(it) }
-            DELETE("/{id}") { skillHandler.deleteSkill(it) }
+            DELETE("/{skillId}") { skillHandler.deleteSkill(it) }
+            GET("/{skillId}/questions") { skillHandler.getSkillQuestionSet(it) }
+            POST("/{skillId}/questions") { skillHandler.createSkillQuestion(it) }
+            PATCH("/{skillId}/questions/{skillQuestionId}") { skillHandler.updateSkillQuestion(it) }
+            DELETE("/{skillId}/questions/{skillQuestionId}") { skillHandler.deleteSkillQuestion(it) }
         }
 
         "/userskills".nest {
             GET("/") { userSkillHandler.getUserSkills(it) }
             POST("/") { userSkillHandler.addSkill(it) }
-            DELETE("/{id}") { userSkillHandler.removeSkill(it) }
+            DELETE("/{userskillId}") { userSkillHandler.removeSkill(it) }
         }
 
         "groups".nest {

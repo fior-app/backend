@@ -46,7 +46,7 @@ class UserSkillHandler(
 
     fun removeSkill(request: ServerRequest) = Mono.zip(
             request.principalUser(userRepository),
-            userSkillRepository.findById(request.pathVariable("id"))
+            userSkillRepository.findById(request.pathVariable("userskillId"))
     ).flatMap { (user, userSkill) ->
         if (userSkill.userId != user.id) {
             return@flatMap "Unauthorized".toUnauthorizedServerResponse()
