@@ -4,7 +4,6 @@ import app.fior.backend.data.SkillQuestionRepository
 import app.fior.backend.data.SkillRepository
 import app.fior.backend.dto.*
 import app.fior.backend.extensions.*
-import app.fior.backend.model.Answer
 import app.fior.backend.model.Skill
 import app.fior.backend.model.SkillQuestion
 import org.springframework.stereotype.Component
@@ -66,7 +65,7 @@ class SkillHandler(
                 ServerResponse.ok().body(
                         skillQuestionRepository.findAllBySkillId(request.pathVariable("skillId"))
                                 .collectList()
-                                .map { it.shuffled().take(10) }
+                                .map { it.shuffled().take(3) }
                                 .flatMapIterable { it },
                         SkillQuestion::class.java
                 )

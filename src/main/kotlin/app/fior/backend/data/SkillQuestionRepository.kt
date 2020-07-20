@@ -8,4 +8,6 @@ interface SkillQuestionRepository : ReactiveMongoRepository<SkillQuestion, Strin
 
     fun findAllBySkillId(skillId: String): Flux<SkillQuestion>
 
+    fun findAllByIdIn(questionIds: List<String>): Flux<SkillQuestion>
+
 }

@@ -1,8 +1,10 @@
 package app.fior.backend.handlers
 
+import app.fior.backend.data.SkillQuestionRepository
 import app.fior.backend.data.SkillRepository
 import app.fior.backend.data.UserRepository
 import app.fior.backend.data.UserSkillRepository
+import app.fior.backend.dto.SkillQuestionAnswersRequest
 import app.fior.backend.dto.UserSkillRequest
 import app.fior.backend.extensions.*
 import app.fior.backend.model.Skill
@@ -18,7 +20,8 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 class UserSkillHandler(
         private val skillRepository: SkillRepository,
         private val userRepository: UserRepository,
-        private val userSkillRepository: UserSkillRepository
+        private val userSkillRepository: UserSkillRepository,
+        private val skillQuestionRepository: SkillQuestionRepository
 ) {
 
     fun getUserSkills(request: ServerRequest) = request.principalUser(userRepository).flatMap { user ->
@@ -58,5 +61,43 @@ class UserSkillHandler(
     }.switchIfEmpty {
         "User skill not found".toNotFoundServerResponse()
     }
+
+    fun verifyUserSkill(request: ServerRequest) = userSkillRepository.findById(request.pathVariable("userskillId")).flatMap { userSkill ->
+        val answerSetSize = 3
+        val answerSetInvalidKey = "invalid_answers"
+
+        request.bodyToMono(SkillQuestionAnswersRequest::class.java).flatMap request@{ skillAnswersRequest ->
+            if (skillAnswersRequest.answers.size != answerSetSize) {
+                return@request "Answer set size invalid".toBadRequestServerResponse()
+            }
+
+            skillQuestionRepository.findAllByIdIn(skillAnswersRequest.answers.map { it.questionId }).collectList().map { questionList ->
+                if (questionList.size != answerSetSize) {
+                    throw Exception(answerSetInvalidKey)
+                }
+
+                questionList.all {
+                    val userAnswer = skillAnswersRequest.answers.find { answer -> answer.questionId == it.id }?.answer
+                    it.answer == userAnswer && it.skillId == userSkill.skill.id
+                }
+            }.flatMap answerCheck@{
+                if (!it) {
+                    throw Exception(answerSetInvalidKey)
+                }
+
+                userSkillRepository.save(userSkill.copy(isVerified = true)).flatMap {
+                    "User skill verified successfully".toSuccessServerResponse()
+                }
+            }.onErrorResume {
+                if (it.message == answerSetInvalidKey)
+                    "Invalid answer set".toBadRequestServerResponse()
+
+                "Unknown error".toBadRequestServerResponse()
+            }
+        }
+    }.switchIfEmpty {
+        "User skill not found".toNotFoundServerResponse()
+    }
+
 
 }

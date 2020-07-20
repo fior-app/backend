@@ -96,6 +96,7 @@ class Router(
             GET("/") { userSkillHandler.getUserSkills(it) }
             POST("/") { userSkillHandler.addSkill(it) }
             DELETE("/{userskillId}") { userSkillHandler.removeSkill(it) }
+            POST("/{userskillId}/verify") { userSkillHandler.verifyUserSkill(it) }
         }
 
         "groups".nest {

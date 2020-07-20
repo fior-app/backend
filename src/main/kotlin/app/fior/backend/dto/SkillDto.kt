@@ -22,3 +22,11 @@ data class SkillQuestionUpdateRequest(
         val answer: Int?
 )
 
+data class SkillQuestionAnswersRequest(
+        val answers: List<SkillQuestionAnswer>
+) {
+    data class SkillQuestionAnswer(
+            val questionId: String,
+            val answer: Int
+    )
+}
