@@ -1,5 +1,6 @@
 package app.fior.backend.services
 
+import app.fior.backend.model.Role
 import app.fior.backend.model.User
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
@@ -34,7 +35,7 @@ class TokenService(
     }
 
     fun generateAuthToken(user: User): String {
-        return doGenerateToken(user.email, accessTokenDuration, TokenType.AUTH)
+        return doGenerateToken(user.email, accessTokenDuration, TokenType.AUTH, user.role)
     }
 
     fun generateResetToken(user: User): String {
@@ -54,12 +55,12 @@ class TokenService(
     }
 
     // Util functions
-    private fun doGenerateToken(subject: String, duration: Int, type: TokenType): String {
+    private fun doGenerateToken(subject: String, duration: Int, type: TokenType, role: Role? = null): String {
         val claims = Jwts.claims()
         claims.subject = subject
 
         when (type) {
-            TokenType.AUTH -> claims[SCOPES_KEY] = listOf(SimpleGrantedAuthority("ROLE_USER"))
+            TokenType.AUTH -> claims[SCOPES_KEY] = listOf(SimpleGrantedAuthority(role!!.name))
             TokenType.RESET -> claims[RESET_KEY] = true
             TokenType.CONFIRM -> claims[CONFIRM_KEY] = true
             TokenType.GROUP_REQUEST -> claims[GROUP_REQUEST_KEY] = true

@@ -1,5 +1,6 @@
 package app.fior.backend.security
 
+import app.fior.backend.model.Role
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -38,9 +39,17 @@ class SecurityConfig(
                 .pathMatchers(HttpMethod.GET, "/questions/**").permitAll()
                 .pathMatchers(HttpMethod.GET, "/posts/**").permitAll()
                 .pathMatchers(HttpMethod.OPTIONS).permitAll()
-                .anyExchange().authenticated()
+                .skillsSecurities()
+                .anyExchange().hasAnyAuthority(Role.USER.name, Role.ADMIN.name)
                 .and()
                 .build()
+    }
+
+    private fun ServerHttpSecurity.AuthorizeExchangeSpec.skillsSecurities(): ServerHttpSecurity.AuthorizeExchangeSpec {
+        return this.pathMatchers(HttpMethod.GET, "/skills/**").permitAll()
+                .pathMatchers(HttpMethod.POST, "/skills/**").hasAuthority(Role.ADMIN.name)
+                .pathMatchers(HttpMethod.PATCH, "/skills/**").hasAuthority(Role.ADMIN.name)
+                .pathMatchers(HttpMethod.DELETE, "/skills/**").hasAuthority(Role.ADMIN.name)
     }
 
     @Bean

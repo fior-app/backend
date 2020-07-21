@@ -7,10 +7,16 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
+enum class Role {
+    USER,
+    ADMIN
+}
+
 @Document(collection = "users")
 data class User(
         @Id val id: String? = null,
         val name: String,
+        val role: Role = Role.USER,
         val email: String,
         val emailValid: Boolean = false,
         val profilePicture: String? = null,
