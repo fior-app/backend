@@ -83,10 +83,12 @@ class Router(
 
         "/skills".nest {
             GET("/") { skillHandler.getSkills(it) }
+            GET("/{skillId}") { skillHandler.getSkill(it) }
             GET("/search") { skillHandler.searchSkills(it) }
             POST("/") { skillHandler.createSkill(it) }
             DELETE("/{skillId}") { skillHandler.deleteSkill(it) }
             GET("/{skillId}/questions") { skillHandler.getSkillQuestionSet(it) }
+            GET("/{skillId}/fullQuestions") { skillHandler.getFullSkillQuestions(it) }
             POST("/{skillId}/questions") { skillHandler.createSkillQuestion(it) }
             PATCH("/{skillId}/questions/{skillQuestionId}") { skillHandler.updateSkillQuestion(it) }
             DELETE("/{skillId}/questions/{skillQuestionId}") { skillHandler.deleteSkillQuestion(it) }

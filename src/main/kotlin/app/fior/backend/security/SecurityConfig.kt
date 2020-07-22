@@ -46,7 +46,9 @@ class SecurityConfig(
     }
 
     private fun ServerHttpSecurity.AuthorizeExchangeSpec.skillsSecurities(): ServerHttpSecurity.AuthorizeExchangeSpec {
-        return this.pathMatchers(HttpMethod.GET, "/skills/**").permitAll()
+        return this
+                .pathMatchers(HttpMethod.GET, "/skills/*/fullQuestions").hasAuthority(Role.ADMIN.name)
+                .pathMatchers(HttpMethod.GET, "/skills/**").permitAll()
                 .pathMatchers(HttpMethod.POST, "/skills/**").hasAuthority(Role.ADMIN.name)
                 .pathMatchers(HttpMethod.PATCH, "/skills/**").hasAuthority(Role.ADMIN.name)
                 .pathMatchers(HttpMethod.DELETE, "/skills/**").hasAuthority(Role.ADMIN.name)

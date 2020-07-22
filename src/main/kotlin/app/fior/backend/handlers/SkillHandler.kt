@@ -27,6 +27,12 @@ class SkillHandler(
             Skill::class.java
     )
 
+    fun getSkill(request: ServerRequest) = skillRepository.findById(request.pathVariable("skillId")).flatMap {
+        ServerResponse.ok().bodyValue(it)
+    }.switchIfEmpty {
+        return@switchIfEmpty "Skill not found".toNotFoundServerResponse()
+    }
+
     fun searchSkills(request: ServerRequest) = request.queryParam("q").toMono()
             .flatMap { query ->
                 if (!query.isPresent)
@@ -56,7 +62,6 @@ class SkillHandler(
                 }
             }
 
-
     fun getSkillQuestionSet(request: ServerRequest) = skillRepository.existsById(request.pathVariable("skillId"))
             .flatMap { skillExists ->
                 if (!skillExists)
@@ -71,6 +76,18 @@ class SkillHandler(
                 )
             }
 
+    fun getFullSkillQuestions(request: ServerRequest) = skillRepository.existsById(request.pathVariable("skillId"))
+            .flatMap { skillExists ->
+                if (!skillExists)
+                    return@flatMap "Skill not found".toNotFoundServerResponse()
+
+                ServerResponse.ok().body(
+                        skillQuestionRepository.findAllBySkillId(request.pathVariable("skillId"))
+                                .map { SkillQuestionFullResponse(it) },
+                        SkillQuestionFullResponse::class.java
+                )
+            }
+
     fun createSkillQuestion(request: ServerRequest) = skillRepository.existsById(request.pathVariable("skillId"))
             .flatMap { skillExists ->
                 if (!skillExists)
@@ -79,7 +96,7 @@ class SkillHandler(
                 request.bodyToMono(SkillQuestionCreateRequest::class.java)
                         .flatMap { skillRequest ->
                             skillQuestionRepository.save(SkillQuestion(
-                                    request.pathVariable("questionId"),
+                                    request.pathVariable("skillId"),
                                     skillRequest
                             )).flatMap {
                                 "Skill question created successfully".toSuccessServerResponse()
