@@ -45,7 +45,7 @@ class AuthHandler(
     fun signInEmail(request: ServerRequest) = request.bodyToMono(SignInEmailRequest::class.java).flatMap { login ->
         userRepository.findByEmail(login.email)
                 .flatMap { user ->
-                    if (passwordEncoder.matches(login.password, user.password)) {
+                    if (passwordEncoder.matches(login.password, user.password) && user.roles.contains(login.scope)) {
                         ServerResponse.ok().bodyValue(SignInResponse(tokenService.generateAuthToken(user)))
                     } else {
                         ServerResponse.status(HttpStatus.UNAUTHORIZED).bodyValue(ErrorResponse("Invalid credentials"))

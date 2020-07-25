@@ -16,7 +16,7 @@ enum class Role {
 data class User(
         @Id val id: String? = null,
         val name: String,
-        val role: Role = Role.USER,
+        val roles: List<Role> = listOf(Role.USER),
         val email: String,
         val emailValid: Boolean = false,
         val profilePicture: String? = null,

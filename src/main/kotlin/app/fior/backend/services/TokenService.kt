@@ -35,7 +35,7 @@ class TokenService(
     }
 
     fun generateAuthToken(user: User): String {
-        return doGenerateToken(user.email, accessTokenDuration, TokenType.AUTH, user.role)
+        return doGenerateToken(user.email, accessTokenDuration, TokenType.AUTH, user.roles)
     }
 
     fun generateResetToken(user: User): String {
@@ -55,12 +55,12 @@ class TokenService(
     }
 
     // Util functions
-    private fun doGenerateToken(subject: String, duration: Int, type: TokenType, role: Role? = null): String {
+    private fun doGenerateToken(subject: String, duration: Int, type: TokenType, roles: List<Role>? = null): String {
         val claims = Jwts.claims()
         claims.subject = subject
 
         when (type) {
-            TokenType.AUTH -> claims[SCOPES_KEY] = listOf(SimpleGrantedAuthority(role!!.name))
+            TokenType.AUTH -> claims[SCOPES_KEY] = roles!!.map { SimpleGrantedAuthority(it.name) }
             TokenType.RESET -> claims[RESET_KEY] = true
             TokenType.CONFIRM -> claims[CONFIRM_KEY] = true
             TokenType.GROUP_REQUEST -> claims[GROUP_REQUEST_KEY] = true

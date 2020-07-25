@@ -1,5 +1,7 @@
 package app.fior.backend.dto
 
+import app.fior.backend.model.Role
+
 data class SignUpRequest(
         val name: String,
         val email: String,
@@ -8,7 +10,8 @@ data class SignUpRequest(
 
 data class SignInEmailRequest(
         val email: String,
-        val password: String
+        val password: String,
+        val scope: Role = Role.USER
 )
 
 data class SignInGoogleRequest(
