@@ -18,7 +18,8 @@ class Router(
         private val userSkillHandler: UserSkillHandler,
         private val commentHandler: CommentHandler,
         private val groupHandler: GroupHandler,
-        private val postHandler: PostHandler
+        private val postHandler: PostHandler,
+        private val adminHandler: AdminHandler
 ) {
 
     @Bean
@@ -45,6 +46,12 @@ class Router(
                 PUT("/") { usersHandler.updateMe(it) }
                 POST("/uploadProfilePicture") { usersHandler.uploadProfilePicture(it) }
             }
+        }
+
+        "/admins".nest {
+            GET("/") { adminHandler.getAdmins(it) }
+            POST("/") { adminHandler.createAdmin(it) }
+            DELETE("/{userId}") { adminHandler.deleteAdmin(it) }
         }
 
         "/chatrooms".nest {

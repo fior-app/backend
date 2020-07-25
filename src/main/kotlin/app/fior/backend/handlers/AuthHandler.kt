@@ -88,8 +88,8 @@ class AuthHandler(
         }
     }.switchIfEmpty { "Unable to retrieve access token".toBadRequestServerResponse() }
 
-    fun forgotPassword(request: ServerRequest) = request.bodyToMono(ForgotPasswordRequest::class.java).flatMap { req ->
-        userRepository.findByEmail(req.email)
+    fun forgotPassword(request: ServerRequest) = request.bodyToMono(EmailRequest::class.java).flatMap { (email) ->
+        userRepository.findByEmail(email)
                 .flatMap {
                     val resetToken = tokenService.generateResetToken(it)
 
