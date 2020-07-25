@@ -9,6 +9,7 @@ import app.fior.backend.dto.UserSkillRequest
 import app.fior.backend.extensions.*
 import app.fior.backend.model.Skill
 import app.fior.backend.model.UserSkill
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -18,6 +19,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Component
 class UserSkillHandler(
+        @Value("\${fior.business.questions-to-verify}") private val questionsToVerify: Int,
         private val skillRepository: SkillRepository,
         private val userRepository: UserRepository,
         private val userSkillRepository: UserSkillRepository,
@@ -63,16 +65,15 @@ class UserSkillHandler(
     }
 
     fun verifyUserSkill(request: ServerRequest) = userSkillRepository.findById(request.pathVariable("userskillId")).flatMap { userSkill ->
-        val answerSetSize = 3
         val answerSetInvalidKey = "invalid_answers"
 
         request.bodyToMono(SkillQuestionAnswersRequest::class.java).flatMap request@{ skillAnswersRequest ->
-            if (skillAnswersRequest.answers.size != answerSetSize) {
+            if (skillAnswersRequest.answers.size != questionsToVerify) {
                 return@request "Answer set size invalid".toBadRequestServerResponse()
             }
 
             skillQuestionRepository.findAllByIdIn(skillAnswersRequest.answers.map { it.questionId }).collectList().map { questionList ->
-                if (questionList.size != answerSetSize) {
+                if (questionList.size != questionsToVerify) {
                     throw Exception(answerSetInvalidKey)
                 }
 

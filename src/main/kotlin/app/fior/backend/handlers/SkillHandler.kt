@@ -6,6 +6,7 @@ import app.fior.backend.dto.*
 import app.fior.backend.extensions.*
 import app.fior.backend.model.Skill
 import app.fior.backend.model.SkillQuestion
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
@@ -16,6 +17,7 @@ import reactor.kotlin.core.publisher.toMono
 
 @Component
 class SkillHandler(
+        @Value("\${fior.business.questions-to-verify}") private val questionsToVerify: Int,
         private val skillRepository: SkillRepository,
         private val skillQuestionRepository: SkillQuestionRepository
 ) {
@@ -70,7 +72,7 @@ class SkillHandler(
                 ServerResponse.ok().body(
                         skillQuestionRepository.findAllBySkillId(request.pathVariable("skillId"))
                                 .collectList()
-                                .map { it.shuffled().take(3) }
+                                .map { it.shuffled().take(questionsToVerify) }
                                 .flatMapIterable { it },
                         SkillQuestion::class.java
                 )

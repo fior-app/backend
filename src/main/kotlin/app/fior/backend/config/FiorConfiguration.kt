@@ -9,6 +9,7 @@ data class FiorConfiguration(
         val auth: AuthConfiguration,
         val token: TokenConfiguration,
         val sendgrid: SendGridConfiguration,
+        val business: BusinessConfiguration,
         val storage: StorageConfiguration
 ) {
     data class AuthConfiguration(
@@ -40,10 +41,14 @@ data class FiorConfiguration(
         )
     }
 
+    data class BusinessConfiguration(
+            val questionsToVerify: Int = 5
+    )
+
     data class StorageConfiguration(
             val accountName: String,
             val accountKey: String,
-            val useEmulatorval: Boolean = false,
+            val useEmulator: Boolean = false,
             val emulatorBlobHost: String?,
             val containerName: String,
             val enableHttps: Boolean = false

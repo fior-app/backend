@@ -9,13 +9,11 @@ import org.springframework.data.annotation.Id
 data class Skill(
         @Id val id: String? = null,
         val name: String,
-        val canVerify: Boolean,
         val isLinkedIn: Boolean
 ) {
     constructor(skill: SkillCreateRequest) : this(
             null,
             skill.name,
-            false,
             false
     )
 }

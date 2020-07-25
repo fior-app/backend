@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration
 class StorageConfiguration(val properties: FiorConfiguration) {
     private val endpoint: String
         get() {
-            if (properties.storage.useEmulatorval) {
+            if (properties.storage.useEmulator) {
                 LOGGER.debug("Using emulator address instead..")
                 return java.lang.String.format("%s/%s", properties.storage.emulatorBlobHost, properties.storage.accountName)
             }
