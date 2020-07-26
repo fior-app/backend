@@ -137,4 +137,16 @@ class UsersHandler(
         }
     }
 
+    fun setMentor(request: ServerRequest) = request.principal().flatMap { principal ->
+        request.bodyToMono(SetMentorRequest::class.java).flatMap { setMentorRequest ->
+            userRepository.findByEmail(principal.name).flatMap { user ->
+                userRepository.save(user.copy(isMentor = setMentorRequest.isMentor))
+                        .flatMap {
+                            "Mentor state set successfully".toSuccessServerResponse()
+                        }
+            }.switchIfEmpty {
+                "User not found".toUnauthorizedServerResponse()
+            }
+        }
+    }
 }

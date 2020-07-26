@@ -1,6 +1,5 @@
 package app.fior.backend.services
 
-import app.fior.backend.dto.ForgotPasswordRequest
 import com.sendgrid.Method
 import com.sendgrid.Request
 import com.sendgrid.Response

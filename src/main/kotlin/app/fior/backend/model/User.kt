@@ -20,8 +20,10 @@ data class User(
         val email: String,
         val emailValid: Boolean = false,
         val profilePicture: String? = null,
+        val isMentor: Boolean = false,
         @JsonIgnore val password: String? = null,
         val hasPassword: Boolean = false,
+        val google: Boolean = false,
         val linkedIn: Boolean = false,
         @JsonIgnore val linkedInToken: Token? = null
 ) {
@@ -34,12 +36,15 @@ data class User(
 
     constructor(payload: GoogleIdToken.Payload) : this(
             name = payload["name"] as String,
-            email = payload.email
+            email = payload.email,
+            emailValid = true,
+            google = true
     )
 
     constructor(token: Token, person: LinkedInService.LinkedInPerson) : this(
             name = "${person.firstName} ${person.lastName}",
             email = person.emailAddress ?: "",
+            emailValid = true,
             linkedInToken = token,
             linkedIn = true
     )

@@ -13,3 +13,7 @@ data class ChangePasswordRequest(
 data class ConfirmEmailRequest(
         val token: String
 )
+
+data class SetMentorRequest(
+        val isMentor: Boolean
+)
