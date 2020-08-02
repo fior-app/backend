@@ -91,8 +91,8 @@ class Router(
 
         "/skills".nest {
             GET("/") { skillHandler.getSkills(it) }
-            GET("/{skillId}") { skillHandler.getSkill(it) }
             GET("/search") { skillHandler.searchSkills(it) }
+            GET("/{skillId}") { skillHandler.getSkill(it) }
             POST("/") { skillHandler.createSkill(it) }
             DELETE("/{skillId}") { skillHandler.deleteSkill(it) }
             GET("/{skillId}/questions") { skillHandler.getSkillQuestionSet(it) }

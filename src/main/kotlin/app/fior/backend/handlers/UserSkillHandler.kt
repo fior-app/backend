@@ -31,7 +31,7 @@ class UserSkillHandler(
                 userSkillRepository.findAllByUserId(user.id!!)
                         .skip(request.queryParam("skip").orElse("0").toLong())
                         .take(request.queryParam("limit").orElse("25").toLong()),
-                Skill::class.java
+                UserSkill::class.java
         )
     }
 
@@ -57,7 +57,7 @@ class UserSkillHandler(
             return@flatMap "Unauthorized".toUnauthorizedServerResponse()
         }
 
-        userSkillRepository.delete(userSkill).flatMap {
+        userSkillRepository.delete(userSkill).thenReturn(true).flatMap {
             "User skill removed successfully".toSuccessServerResponse()
         }
     }.switchIfEmpty {
