@@ -41,12 +41,14 @@ class UsersHandler(
             userRepository.findByEmail(principal.name)
                     .flatMap getUser@{ user ->
                         val canUpdateEmail = if (updateUserRequest.email != null && updateUserRequest.email != user.email) {
-                            userRepository.findByEmail(updateUserRequest.email).block() != null
-                        } else return@getUser "User with given email already exists".toBadRequestServerResponse()
+                            if (userRepository.findByEmail(updateUserRequest.email).block() != null) {
+                                return@getUser "User with given email already exists".toBadRequestServerResponse()
+                            } else true
+                        } else false
 
                         val updatedUser = user.copy(
                                 name = updateUserRequest.name ?: user.name,
-                                email = if (canUpdateEmail) updateUserRequest.email else user.email,
+                                email = if (canUpdateEmail && updateUserRequest.email != null) updateUserRequest.email else user.email,
                                 emailValid = if (canUpdateEmail) false else user.emailValid
                         )
 
