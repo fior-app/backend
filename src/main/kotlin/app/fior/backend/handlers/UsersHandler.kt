@@ -48,6 +48,7 @@ class UsersHandler(
 
                         val updatedUser = user.copy(
                                 name = updateUserRequest.name ?: user.name,
+                                bio = updateUserRequest.bio ?: user.bio,
                                 email = if (canUpdateEmail && updateUserRequest.email != null) updateUserRequest.email else user.email,
                                 emailValid = if (canUpdateEmail) false else user.emailValid
                         )

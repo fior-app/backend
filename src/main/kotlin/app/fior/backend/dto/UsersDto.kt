@@ -2,6 +2,7 @@ package app.fior.backend.dto
 
 data class UpdateUserRequest(
         val name: String?,
+        val bio: String?,
         val email: String?
 )
 
