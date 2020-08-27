@@ -69,6 +69,7 @@ class UserSkillHandler(
 
         request.bodyToMono(SkillQuestionAnswersRequest::class.java).flatMap request@{ skillAnswersRequest ->
             if (skillAnswersRequest.answers.size != questionsToVerify) {
+                println("Question size error")
                 return@request "Answer set size invalid".toBadRequestServerResponse()
             }
 
@@ -79,6 +80,8 @@ class UserSkillHandler(
 
                 questionList.all {
                     val userAnswer = skillAnswersRequest.answers.find { answer -> answer.questionId == it.id }?.answer
+                    println(userAnswer)
+                    println(it.answer)
                     it.answer == userAnswer && it.skillId == userSkill.skill.id
                 }
             }.flatMap answerCheck@{
@@ -90,9 +93,12 @@ class UserSkillHandler(
                     "User skill verified successfully".toSuccessServerResponse()
                 }
             }.onErrorResume {
-                if (it.message == answerSetInvalidKey)
+                if (it.message == answerSetInvalidKey) {
+                    println("Set invalid")
                     "Invalid answer set".toBadRequestServerResponse()
+                }
 
+                println("Unknown error")
                 "Unknown error".toBadRequestServerResponse()
             }
         }
