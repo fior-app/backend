@@ -55,7 +55,8 @@ class SecurityConfig(
     }
 
     private fun AuthorizeExchangeSpec.posts(): AuthorizeExchangeSpec {
-        return this.pathMatchers(HttpMethod.GET, "/posts/**").permitAll()
+        return this.pathMatchers(HttpMethod.GET, "/posts/me").authenticated()
+                .pathMatchers(HttpMethod.GET, "/posts/**").permitAll()
     }
 
     private fun AuthorizeExchangeSpec.skills(): AuthorizeExchangeSpec {

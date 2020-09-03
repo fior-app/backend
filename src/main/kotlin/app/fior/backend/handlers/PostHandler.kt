@@ -26,6 +26,15 @@ class PostHandler(
             Post::class.java
     )
 
+    fun getMyPosts(request: ServerRequest) = request.principalUser(userRepository).flatMap {
+        ServerResponse.ok().body(
+                postRepository.findAllByCreatedBy_Id(it.id!!)
+                        .skip(request.queryParam("skip").orElse("0").toLong())
+                        .take(request.queryParam("limit").orElse("25").toLong()),
+                Post::class.java
+        )
+    }
+
     fun getPost(request: ServerRequest) = postRepository.findById(request.pathVariable("postId"))
             .flatMap {
                 ServerResponse.ok().bodyValue(it)

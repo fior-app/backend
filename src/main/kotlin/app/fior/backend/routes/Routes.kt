@@ -77,6 +77,7 @@ class Router(
 
         "/posts".nest {
             GET("/") { postHandler.getPosts(it) }
+            GET("/me") { postHandler.getMyPosts(it) }
             GET("/{postId}") { postHandler.getPost(it) }
             POST("/") { postHandler.createPost(it) }
             PATCH("/{postId}") { postHandler.updatePost(it) }
