@@ -7,8 +7,6 @@ import app.fior.backend.dto.MemberAddRequest
 import app.fior.backend.extensions.*
 import app.fior.backend.model.Group
 import app.fior.backend.model.GroupMember
-import app.fior.backend.model.Project
-import app.fior.backend.model.User
 import app.fior.backend.model.commiunication.Chatroom
 import app.fior.backend.services.EmailService
 import app.fior.backend.services.TokenService
@@ -42,20 +40,12 @@ class GroupHandler(
                                     chatroom.compact()
                             )
                     ).flatMap { group ->
-                        Mono.zip(
-                                groupMemberRepository.save(
-                                        GroupMember(
-                                                group,
-                                                user.compact(),
-                                                GroupMember.GroupMemberState.OK
-                                        ).withAllPermissions()
-                                ),
-                                projectRepository.save(
-                                        Project(
-                                                groupRequest.project,
-                                                group.id!!
-                                        )
-                                )
+                        groupMemberRepository.save(
+                                GroupMember(
+                                        group,
+                                        user.compact(),
+                                        GroupMember.GroupMemberState.OK
+                                ).withAllPermissions()
                         ).flatMap {
                             "Group Created Successfully".toSuccessServerResponse()
                         }
