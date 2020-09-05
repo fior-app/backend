@@ -15,8 +15,8 @@ data class ProjectDetails(
 )
 
 data class GroupCreateRequest(
-        val group: GroupDetails,
-        val project: ProjectDetails
+        val group: GroupDetails
+//        val project: ProjectDetails
 )
 
 data class GroupUpdateRequest(
