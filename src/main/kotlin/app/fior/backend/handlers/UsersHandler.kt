@@ -5,6 +5,8 @@ import app.fior.backend.dto.*
 import app.fior.backend.extensions.toBadRequestServerResponse
 import app.fior.backend.extensions.toSuccessServerResponse
 import app.fior.backend.extensions.toUnauthorizedServerResponse
+import app.fior.backend.model.Skill
+import app.fior.backend.model.User
 import app.fior.backend.services.BlobService
 import app.fior.backend.services.EmailService
 import app.fior.backend.services.TokenService
@@ -152,4 +154,12 @@ class UsersHandler(
             }
         }
     }
+
+    fun searchMentors(request: ServerRequest) = ServerResponse.ok().body(
+            userRepository.findAllByisMentorAndNameLike(true, request.queryParam("query").orElse(""))
+                    .skip(request.queryParam("skip").orElse("0").toLong())
+                    .take(request.queryParam("limit").orElse("25").toLong()),
+            User::class.java
+    )
+
 }

@@ -41,6 +41,7 @@ class SecurityConfig(
                 .posts()
                 .skills()
                 .admins()
+                .users()
                 .anyExchange().hasAnyAuthority(Role.USER.name, Role.ADMIN.name)
                 .and()
                 .build()
@@ -70,6 +71,10 @@ class SecurityConfig(
 
     private fun AuthorizeExchangeSpec.admins(): AuthorizeExchangeSpec {
         return this.pathMatchers("/admins/**").hasAuthority(Role.ADMIN.name)
+    }
+
+    private fun AuthorizeExchangeSpec.users(): AuthorizeExchangeSpec {
+        return this.pathMatchers(HttpMethod.GET,"/users/mentors").permitAll()
     }
 
     @Bean

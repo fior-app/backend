@@ -47,6 +47,9 @@ class Router(
                 POST("/uploadProfilePicture") { usersHandler.uploadProfilePicture(it) }
                 POST("/setMentor") { usersHandler.setMentor(it) }
             }
+            "/mentors".nest {
+                GET("/") { usersHandler.searchMentors(it) }
+            }
         }
 
         "/admins".nest {
