@@ -204,17 +204,22 @@ class GroupHandler(
     ).flatMap { (user, stateChangeRequest, group) ->
         groupMemberRepository.findByGroupAndMember_Email(group, user.email)
                 .flatMap { groupMember ->
-                    groupMember.apply {
-                        state = stateChangeRequest.state
-                        member = user.compact()
+                    if (stateChangeRequest.state == GroupMember.GroupMemberState.DECLINED) {
+                        groupMemberRepository.delete(groupMember).flatMap {
+                            "Group State changed!".toSuccessServerResponse()
+                        }
+                    } else {
+                        groupMember.apply {
+                            state = stateChangeRequest.state
+                        }
+                        if (stateChangeRequest.state == GroupMember.GroupMemberState.OK) {
+                            groupRepository.save(group.plusMember())
+                        }
+                        groupMemberRepository.save(groupMember)
+                                .flatMap {
+                                    "Group State changed!".toSuccessServerResponse()
+                                }
                     }
-                    if (stateChangeRequest.state == GroupMember.GroupMemberState.CONFIRM) {
-                        groupRepository.save(group.plusMember())
-                    }
-                    groupMemberRepository.save(groupMember)
-                            .flatMap {
-                                "Group State changed!".toSuccessServerResponse()
-                            }
                 }.switchIfEmpty {
                     "User is not a member in group".toForbiddenServerResponse()
                 }
