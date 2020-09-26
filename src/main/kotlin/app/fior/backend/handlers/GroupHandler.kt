@@ -142,7 +142,11 @@ class GroupHandler(
                     if (!userMember.hasPermission(GroupMember.Permission.SEND_MEMBER_REQUESTS))
                         return@userMember "Unauthorized to send requests".toUnauthorizedServerResponse()
                     userRepository.findByEmail(memberAddRequest.email)
-                            .flatMap { member ->
+                            .flatMap findMember@{ member ->
+                                if (memberAddRequest.isMentor && !member.isMentor) {
+                                    return@findMember "Can't add not mentor as a mentor".toForbiddenServerResponse()
+                                }
+
                                 groupMemberRepository.findByGroupAndMember(group, member.compact())
                                         .flatMap { _ ->
                                             "User is already a member".toForbiddenServerResponse()
@@ -152,9 +156,9 @@ class GroupHandler(
                                                             GroupMember(
                                                                     group,
                                                                     member.compact(),
-                                                                    GroupMember.GroupMemberState.CONFIRM
+                                                                    GroupMember.GroupMemberState.CONFIRM,
+                                                                    if (memberAddRequest.isMentor) setOf(GroupMember.Permission.MENTOR) else setOf()
                                                             )
-
                                                     ),
                                                     emailService.sendGroupInvitation(
                                                             memberAddRequest.email,
@@ -164,26 +168,7 @@ class GroupHandler(
                                             }
                                         }
                             }.switchIfEmpty {
-                                groupMemberRepository.findByGroupAndMember_Email(group, memberAddRequest.email)
-                                        .flatMap { _ ->
-                                            "User is already a member".toForbiddenServerResponse()
-                                        }.switchIfEmpty {
-                                            Mono.zip(
-                                                    groupMemberRepository.save(
-                                                            GroupMember(
-                                                                    group,
-                                                                    User.userWithEmail(memberAddRequest.email),
-                                                                    GroupMember.GroupMemberState.CONFIRM
-                                                            )
-
-                                                    ),
-                                                    emailService.sendGroupInvitation(
-                                                            memberAddRequest.email,
-                                                            tokenService.groupRequestToken(memberAddRequest.email))
-                                            ).flatMap {
-                                                "User requested to group".toSuccessServerResponse()
-                                            }
-                                        }
+                                "User not found for the given member email".toForbiddenServerResponse()
                             }
                 }.switchIfEmpty {
                     "User is not a member in group".toForbiddenServerResponse()

@@ -25,7 +25,8 @@ data class GroupUpdateRequest(
 )
 
 data class MemberAddRequest(
-        val email: String
+        val email: String,
+        val isMentor: Boolean = false
 )
 
 data class GroupStateChangeRequest(

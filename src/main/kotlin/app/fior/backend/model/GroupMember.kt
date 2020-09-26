@@ -18,13 +18,14 @@ data class GroupMember(
     }
 
     enum class Permission {
+        MENTOR,
         SEND_MEMBER_REQUESTS,
         REMOVE_MEMBER,
         CLOSE_GROUP
     }
 
-    constructor(group: Group, member: UserCompact, state: GroupMemberState) : this(
-            null, group, member, state, setOf<Permission>()
+    constructor(group: Group, member: UserCompact, state: GroupMemberState, permissions: Set<Permission> = setOf()) : this(
+            null, group, member, state, permissions
     )
 
     fun withPermission(permission: Permission) = this.copy(permissions = this.permissions.plus(permission))
