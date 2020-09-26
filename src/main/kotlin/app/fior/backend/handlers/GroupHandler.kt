@@ -157,7 +157,8 @@ class GroupHandler(
                                                                     group,
                                                                     member.compact(),
                                                                     GroupMember.GroupMemberState.CONFIRM,
-                                                                    if (memberAddRequest.isMentor) setOf(GroupMember.Permission.MENTOR) else setOf()
+                                                                    if (memberAddRequest.isMentor) setOf(GroupMember.Permission.MENTOR) else setOf(),
+                                                                    memberAddRequest.comment
                                                             )
                                                     ),
                                                     emailService.sendGroupInvitation(
@@ -205,7 +206,7 @@ class GroupHandler(
         groupMemberRepository.findByGroupAndMember_Email(group, user.email)
                 .flatMap { groupMember ->
                     if (stateChangeRequest.state == GroupMember.GroupMemberState.DECLINED) {
-                        groupMemberRepository.delete(groupMember).flatMap {
+                        groupMemberRepository.delete(groupMember).thenReturn(true).flatMap {
                             "Group State changed!".toSuccessServerResponse()
                         }
                     } else {

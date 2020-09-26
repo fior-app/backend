@@ -9,7 +9,8 @@ data class GroupMember(
         val group: Group,
         var member: UserCompact,
         var state: GroupMemberState,
-        val permissions: Set<Permission>
+        val permissions: Set<Permission>,
+        val comment: String? = null
 ) {
     enum class GroupMemberState {
         CONFIRM,
@@ -24,8 +25,14 @@ data class GroupMember(
         CLOSE_GROUP
     }
 
-    constructor(group: Group, member: UserCompact, state: GroupMemberState, permissions: Set<Permission> = setOf()) : this(
-            null, group, member, state, permissions
+    constructor(
+            group: Group,
+            member: UserCompact,
+            state: GroupMemberState,
+            permissions: Set<Permission> = setOf(),
+            comment: String? = null
+    ) : this(
+            null, group, member, state, permissions, comment
     )
 
     fun withPermission(permission: Permission) = this.copy(permissions = this.permissions.plus(permission))
