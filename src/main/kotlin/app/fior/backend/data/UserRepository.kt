@@ -13,5 +13,6 @@ interface UserRepository : ReactiveMongoRepository<User, String> {
     fun findAllByRolesContains(role: Role): Flux<User>
 
     fun findAllByisMentorAndNameLike(isMentor: Boolean, name: String): Flux<User>
+    fun findByisMentorAndId(isMentor: Boolean, id: String): Mono<User>
 
 }

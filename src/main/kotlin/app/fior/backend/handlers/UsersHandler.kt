@@ -1,11 +1,12 @@
 package app.fior.backend.handlers
 
 import app.fior.backend.data.UserRepository
+import app.fior.backend.data.UserSkillRepository
 import app.fior.backend.dto.*
 import app.fior.backend.extensions.toBadRequestServerResponse
 import app.fior.backend.extensions.toSuccessServerResponse
 import app.fior.backend.extensions.toUnauthorizedServerResponse
-import app.fior.backend.model.Skill
+import app.fior.backend.extensions.*
 import app.fior.backend.model.User
 import app.fior.backend.services.BlobService
 import app.fior.backend.services.EmailService
@@ -18,11 +19,13 @@ import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import java.util.*
 
 @Component
 class UsersHandler(
         private val userRepository: UserRepository,
+        private val userSkillRepository: UserSkillRepository,
         private val emailService: EmailService,
         private val tokenService: TokenService,
         private val passwordEncoder: BCryptPasswordEncoder,
@@ -160,6 +163,16 @@ class UsersHandler(
                     .skip(request.queryParam("skip").orElse("0").toLong())
                     .take(request.queryParam("limit").orElse("25").toLong()),
             User::class.java
+    )
+
+    fun getMentor(request: ServerRequest) = ServerResponse.ok().body(
+            Mono.zip(
+                    userRepository.findByisMentorAndId(true, request.pathVariable("userId")),
+                    userSkillRepository.findAllByUserId(request.pathVariable("userId")).collectList()
+            ).map { (user, userSkill) ->
+                Mentor(user, userSkill)
+            },
+            Mentor::class.java
     )
 
 }

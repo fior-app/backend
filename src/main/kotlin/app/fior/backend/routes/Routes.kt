@@ -49,6 +49,7 @@ class Router(
             }
             "/mentors".nest {
                 GET("/") { usersHandler.searchMentors(it) }
+                GET("/{userId}") { usersHandler.getMentor(it) }
             }
         }
 
