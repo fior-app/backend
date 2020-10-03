@@ -1,6 +1,6 @@
 package app.fior.backend.model
 
-import app.fior.backend.dto.GroupDetails
+import app.fior.backend.dto.GroupCreateRequest
 import app.fior.backend.model.commiunication.ChatroomCompact
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
@@ -26,7 +26,7 @@ data class Group(
             members
     )
 
-    constructor(groupDetails: GroupDetails, createdBy: UserCompact, chatroom: ChatroomCompact, members: Int = 1) : this(
+    constructor(groupDetails: GroupCreateRequest, createdBy: UserCompact, chatroom: ChatroomCompact, members: Int = 1) : this(
             null,
             groupDetails.name,
             groupDetails.description,

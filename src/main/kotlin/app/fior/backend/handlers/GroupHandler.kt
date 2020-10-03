@@ -31,11 +31,11 @@ class GroupHandler(
             request.principalUser(userRepository),
             request.bodyToMono(GroupCreateRequest::class.java)
     ).flatMap { (user, groupRequest) ->
-        chatroomRepository.save(Chatroom(groupRequest.group.name, Chatroom.ChatroomType.GROUP))
+        chatroomRepository.save(Chatroom(groupRequest.name, Chatroom.ChatroomType.GROUP))
                 .flatMap { chatroom ->
                     groupRepository.save(
                             Group(
-                                    groupRequest.group,
+                                    groupRequest,
                                     user.compact(),
                                     chatroom.compact()
                             )
