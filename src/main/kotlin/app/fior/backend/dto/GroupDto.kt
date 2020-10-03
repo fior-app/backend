@@ -15,7 +15,10 @@ data class ProjectDetails(
 )
 
 data class GroupCreateRequest(
-        val group: GroupDetails
+        val name: String,
+        val description: String,
+        val icon: String?
+//        val group: GroupDetails
 //        val project: ProjectDetails
 )
 
